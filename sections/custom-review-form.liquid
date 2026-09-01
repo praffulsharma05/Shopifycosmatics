@@ -895,12 +895,18 @@
             if (h === currentHandle || h === currentTitle || h === "") {
               // Avoid duplicates
               if (!approvedRevs.some(existing => existing.review === item.review && existing.name === item.name)) {
+                let imgList = [];
+                if (Array.isArray(item.images)) imgList = item.images;
+                else if (item.image) imgList = [item.image];
+                else if (item.images && typeof item.images === 'string') imgList = [item.images];
+
                 approvedRevs.push({
                   name: item.name,
                   rating: parseInt(item.rating || 5),
                   title: item.title,
                   review: item.review,
                   date: item.date,
+                  images: imgList,
                   status: 'APPROVED'
                 });
               }
@@ -1330,6 +1336,8 @@
       const bodyVal = bodyInput ? bodyInput.value.trim() : '';
 
       try {
+        const safeImages = (uploadedDataUrls || []).slice(0, 2);
+
         const payload = {
           product_id: "{{ product.id }}",
           product_title: "{{ product.title | escape }}",
@@ -1339,7 +1347,8 @@
           rating: selectedRating,
           title: titleVal,
           review: bodyVal,
-          images_count: uploadedFiles ? uploadedFiles.length : 0,
+          images: safeImages,
+          images_count: safeImages ? safeImages.length : 0,
           submitted_at: new Date().toISOString()
         };
 
