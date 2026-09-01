@@ -694,46 +694,45 @@
 
 
 <script>
+function openReviewModal() {
+  var overlay = document.getElementById('crReviewOverlay');
+  if (overlay) {
+    overlay.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 99999999 !important;';
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    var modal = overlay.querySelector('.cr-modal');
+    if (modal) modal.scrollTop = 0;
+  }
+}
+
+function closeReviewModal() {
+  var overlay = document.getElementById('crReviewOverlay');
+  if (overlay) {
+    overlay.style.cssText = 'display: none !important;';
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
 (function() {
-  /* ===== Global Open / Close modal Functions ===== */
-  window.openReviewModal = function() {
-    const overlay = document.getElementById('crReviewOverlay');
-    if (overlay) {
-      overlay.style.setProperty('display', 'flex', 'important');
-      overlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      const modal = overlay.querySelector('.cr-modal');
-      if (modal) modal.scrollTop = 0;
-    }
-  };
-
-  window.closeReviewModal = function() {
-    const overlay = document.getElementById('crReviewOverlay');
-    if (overlay) {
-      overlay.style.setProperty('display', 'none', 'important');
-      overlay.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  };
-
   document.addEventListener('click', function(e) {
-    const writeBtn = e.target.closest('#crWriteReviewBtn');
+    var writeBtn = e.target.closest('#crWriteReviewBtn');
     if (writeBtn) {
       e.preventDefault();
-      window.openReviewModal();
+      openReviewModal();
       return;
     }
 
-    const closeBtn = e.target.closest('#crModalClose');
+    var closeBtn = e.target.closest('#crModalClose');
     if (closeBtn) {
       e.preventDefault();
-      window.closeReviewModal();
+      closeReviewModal();
       return;
     }
 
-    const overlayEl = document.getElementById('crReviewOverlay');
+    var overlayEl = document.getElementById('crReviewOverlay');
     if (overlayEl && e.target === overlayEl) {
-      window.closeReviewModal();
+      closeReviewModal();
     }
   });
 
