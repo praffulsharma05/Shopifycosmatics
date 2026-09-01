@@ -569,9 +569,6 @@
     <div class="cr-actions">
       <button class="cr-btn cr-btn--primary" id="crWriteReviewBtn" type="button">Write a review</button>
       <button class="cr-btn cr-btn--outline" id="crAskQuestionBtn" type="button">Ask a question</button>
-      <button class="cr-btn cr-btn--admin" id="crAdminPanelBtn" type="button" style="{% unless section.settings.show_admin_button %}display: none;{% else %}display: inline-flex;{% endunless %} background: #111827; color: #ffffff; border: 1px solid #374151; align-items: center; justify-content: center; gap: 6px; font-weight: 600;">
-        <span>🛡️</span> Admin Moderation
-      </button>
     </div>
   </div>
 
@@ -694,44 +691,7 @@
   </div>
 </div>
 
-<!-- ===== ADMIN MODERATION PANEL POPUP ===== -->
-<div class="cr-overlay" id="crAdminOverlay">
-  <div class="cr-modal" style="max-width: 80rem; padding: 3rem 2.5rem;">
-    <button class="cr-modal-close" id="crAdminModalClose" type="button" aria-label="Close">&times;</button>
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-bottom: 2px solid #f3f4f6; padding-bottom: 1.2rem; margin-bottom: 1.8rem;">
-      <div>
-        <h3 class="cr-modal-title" style="text-align: left; margin: 0; font-size: 2.2rem; display: flex; align-items: center; gap: 8px;">
-          <span>🛡️</span> Admin Review Moderation Panel
-        </h3>
-        <p style="margin: 4px 0 0 0; font-size: 1.3rem; color: #6b7280;">Approve or reject customer reviews for product <strong>{{ product.title }}</strong> (Product ID: {{ product.id }})</p>
-      </div>
-      <div style="font-size: 1.2rem; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-weight: 700;">
-        Admin Mode Active
-      </div>
-    </div>
 
-    <!-- Filter Tabs -->
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem;" id="crAdminTabs">
-      <button type="button" class="cr-admin-tab active" data-tab="pending" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #fef3c7; color: #92400e; font-weight: 700; cursor: pointer; font-size: 1.3rem;">
-        ⏳ Pending Approval (<span id="crCountPending">0</span>)
-      </button>
-      <button type="button" class="cr-admin-tab" data-tab="approved" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; font-weight: 600; cursor: pointer; font-size: 1.3rem;">
-        ✅ Approved (<span id="crCountApproved">0</span>)
-      </button>
-      <button type="button" class="cr-admin-tab" data-tab="rejected" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; font-weight: 600; cursor: pointer; font-size: 1.3rem;">
-        ❌ Rejected (<span id="crCountRejected">0</span>)
-      </button>
-      <button type="button" class="cr-admin-tab" data-tab="all" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; font-weight: 600; cursor: pointer; font-size: 1.3rem;">
-        All Reviews (<span id="crCountAll">0</span>)
-      </button>
-    </div>
-
-    <!-- Admin Reviews List Container -->
-    <div id="crAdminList" style="display: flex; flex-direction: column; gap: 1.2rem; max-height: 55vh; overflow-y: auto; padding-right: 4px;">
-      <!-- Dynamic Admin Review Cards will render here -->
-    </div>
-  </div>
-</div>
 
 <script>
 (function() {
