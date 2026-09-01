@@ -309,7 +309,6 @@
     padding: 0;
     line-height: 1;
   }
-  .cr-star-picker .cr-pick-star:hover,
   .cr-star-picker .cr-pick-star.active { color: #f5a623 !important; transform: scale(1.15); }
   .cr-star-labels {
     display: flex;
@@ -435,13 +434,90 @@
     font-weight: 600;
   }
 
-  /* Responsive */
+  /* ===== RESPONSIVE DESIGN SYSTEM ===== */
+  @media screen and (max-width: 989px) {
+    .cr-summary {
+      gap: 2.5rem;
+    }
+  }
+
   @media screen and (max-width: 749px) {
-    .cr-summary { flex-direction: column; align-items: flex-start; }
-    .cr-bars { max-width: 100%; }
-    .cr-actions { flex-direction: row; width: 100%; }
-    .cr-btn { flex: 1; min-width: auto; padding: 1rem 1.5rem; font-size: 1.3rem; }
-    .cr-modal { padding: 2.5rem 2rem; }
+    .cr-section {
+      padding: 1.5rem 1.5rem;
+    }
+    .cr-heading {
+      font-size: 2.2rem;
+      margin-bottom: 2rem;
+    }
+    .cr-summary {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2rem;
+      padding-bottom: 2rem;
+    }
+    .cr-summary-left {
+      text-align: center;
+      align-items: center;
+      justify-content: center;
+    }
+    .cr-bars {
+      max-width: 100%;
+      width: 100%;
+    }
+    .cr-actions {
+      flex-direction: row;
+      width: 100%;
+      gap: 1rem;
+    }
+    .cr-btn {
+      flex: 1;
+      min-width: 0;
+      padding: 1.2rem 1rem;
+      font-size: 1.3rem;
+      text-align: center;
+      justify-content: center;
+    }
+    .cr-overlay {
+      padding: 1rem;
+    }
+    .cr-modal {
+      padding: 2.5rem 1.8rem;
+      width: 95%;
+      max-height: 88vh;
+      border-radius: 16px;
+    }
+    .cr-modal-title {
+      font-size: 2rem;
+    }
+    .cr-star-picker .cr-pick-star {
+      font-size: 3.5rem;
+    }
+    .cr-star-labels {
+      width: 100%;
+      max-width: 22rem;
+    }
+    .cr-review-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .cr-review-right {
+      align-items: flex-start;
+      margin-top: 0.5rem;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .cr-actions {
+      flex-direction: column;
+    }
+    .cr-btn {
+      width: 100%;
+    }
+    .cr-star-picker .cr-pick-star {
+      font-size: 3rem;
+      padding: 0 0.2rem;
+    }
   }
 </style>
 
@@ -512,8 +588,7 @@
 
 <script>
 window.selectedRating = 0;
-function selectStarRating(val) {
-  window.selectedRating = parseInt(val);
+function highlightStars(val) {
   var stars = document.querySelectorAll('#crStarPicker .cr-pick-star');
   stars.forEach(function(s, idx) {
     if ((idx + 1) <= val) {
@@ -524,6 +599,11 @@ function selectStarRating(val) {
       s.style.setProperty('color', '#cccccc', 'important');
     }
   });
+}
+
+function selectStarRating(val) {
+  window.selectedRating = parseInt(val);
+  highlightStars(val);
 }
 
 function openReviewModal() {
@@ -767,22 +847,18 @@ function closeReviewModal() {
   });
 
   /* ===== Star picker with Event Delegation ===== */
-  let selectedRating = 0;
-
   document.addEventListener('mouseover', function(e) {
     const starBtn = e.target.closest('#crStarPicker .cr-pick-star');
     if (starBtn) {
       const val = parseInt(starBtn.dataset.value || 5);
-      const allStars = document.querySelectorAll('#crStarPicker .cr-pick-star');
-      allStars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= val));
+      highlightStars(val);
     }
   });
 
   document.addEventListener('mouseout', function(e) {
     const picker = e.target.closest('#crStarPicker');
     if (picker) {
-      const allStars = document.querySelectorAll('#crStarPicker .cr-pick-star');
-      allStars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
+      highlightStars(window.selectedRating || 0);
     }
   });
 
@@ -790,9 +866,8 @@ function closeReviewModal() {
     const starBtn = e.target.closest('#crStarPicker .cr-pick-star');
     if (starBtn) {
       e.preventDefault();
-      selectedRating = parseInt(starBtn.dataset.value || 5);
-      const allStars = document.querySelectorAll('#crStarPicker .cr-pick-star');
-      allStars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
+      const val = parseInt(starBtn.dataset.value || 5);
+      selectStarRating(val);
     }
   });
 
