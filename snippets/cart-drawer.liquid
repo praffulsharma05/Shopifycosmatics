@@ -1,0 +1,329 @@
+{% comment %}
+  Renders cart drawer
+
+  Usage:
+  {% render 'cart-drawer' %}
+{% endcomment %}
+
+{{ 'quantity-popover.css' | asset_url | stylesheet_tag }}
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
+
+<style>
+  .drawer {
+    visibility: hidden;
+  }
+</style>
+
+<cart-drawer class="drawer{% if cart == empty %} is-empty{% endif %}">
+  <div id="CartDrawer" class="cart-drawer">
+    <div id="CartDrawer-Overlay" class="cart-drawer__overlay"></div>
+    <div
+      class="drawer__inner gradient color-{{ settings.cart_color_scheme }}"
+      role="dialog"
+      aria-modal="true"
+      aria-label="{{ 'sections.cart.title' | t }}"
+      tabindex="-1"
+    >
+      {%- if cart == empty -%}
+        {% render 'cart-drawer-empty', settings: settings, routes: routes, shop: shop, customer: customer %}
+      {%- endif -%}
+      <div class="drawer__header">
+        <h2 class="drawer__heading">{{ 'sections.cart.title' | t }}</h2>
+        <button
+          class="drawer__close"
+          type="button"
+          onclick="this.closest('cart-drawer').close()"
+          aria-label="{{ 'accessibility.close' | t }}"
+        >
+          <span class="svg-wrapper">
+            {{- 'icon-close.svg' | inline_asset_content -}}
+          </span>
+        </button>
+      </div>
+      <cart-drawer-items
+        view-event-payload="{{ cart | standard_event_data: 'view', context: 'dialog' | escape }}"
+        view-event-trigger="manual"
+        {% if cart == empty %}
+          class=" is-empty"
+        {% endif %}
+      >
+        <form
+          action="{{ routes.cart_url }}"
+          id="CartDrawer-Form"
+          class="cart__contents cart-drawer__form"
+          method="post"
+        >
+          <div id="CartDrawer-CartItems" class="drawer__contents js-contents">
+            {%- if cart != empty -%}
+              <div class="drawer__cart-items-wrapper">
+                <table class="cart-items" role="table">
+                  <thead role="rowgroup">
+                    <tr role="row">
+                      <th id="CartDrawer-ColumnProductImage" role="columnheader">
+                        <span class="visually-hidden">{{ 'sections.cart.headings.image' | t }}</span>
+                      </th>
+                      <th
+                        id="CartDrawer-ColumnProduct"
+                        class="caption-with-letter-spacing"
+                        scope="col"
+                        role="columnheader"
+                      >
+                        {{ 'sections.cart.headings.product' | t }}
+                      </th>
+                      <th
+                        id="CartDrawer-ColumnTotal"
+                        class="right caption-with-letter-spacing"
+                        scope="col"
+                        role="columnheader"
+                      >
+                        {{ 'sections.cart.headings.total' | t }}
+                      </th>
+                      <th id="CartDrawer-ColumnQuantity" role="columnheader">
+                        <span class="visually-hidden">{{ 'sections.cart.headings.quantity' | t }}</span>
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody role="rowgroup">
+                    {%- for item in cart.items -%}
+                      {% render 'cart-drawer-item',
+                        item: item,
+                        cart: cart,
+                        settings: settings,
+                        routes: routes,
+                        forloop: forloop
+                      %}
+                    {%- endfor -%}
+                  </tbody>
+                </table>
+              </div>
+            {%- endif -%}
+            <p id="CartDrawer-LiveRegionText" class="visually-hidden" role="status"></p>
+            <p id="CartDrawer-LineItemStatus" class="visually-hidden" aria-hidden="true" role="status">
+              {{ 'accessibility.loading' | t }}
+            </p>
+          </div>
+          <div id="CartDrawer-CartErrors" role="alert"></div>
+        </form>
+
+        {% comment %} Cross Selling Section {% endcomment %}
+        {%- liquid
+          assign cross_sell_collection = collections['cross-selling']
+          if cross_sell_collection == blank or cross_sell_collection.products.size == 0
+            assign cross_sell_collection = collections['cross-sell']
+          endif
+          if cross_sell_collection == blank or cross_sell_collection.products.size == 0
+            assign cross_sell_collection = collections['all']
+          endif
+        -%}
+        {%- if cross_sell_collection != blank and cross_sell_collection.products.size > 0 -%}
+          {%- assign cross_items_count = 0 -%}
+          {%- capture cross_sell_html -%}
+            {%- for product in cross_sell_collection.products limit: 12 -%}
+              {%- assign in_cart = false -%}
+              {%- for item in cart.items -%}
+                {%- if item.product_id == product.id -%}
+                  {%- assign in_cart = true -%}
+                  {%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+              {%- unless in_cart or product.available == false -%}
+                {%- assign cross_items_count = cross_items_count | plus: 1 -%}
+                {%- if cross_items_count <= 3 -%}
+                  <div class="cart-drawer__cross-sell-item" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(46, 42, 57, 0.08); gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                      {% if product.featured_image %}
+                        <img
+                          src="{{ product.featured_image | image_url: width: 120 }}"
+                          alt="{{ product.title | escape }}"
+                          style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #f5f5f5;"
+                          loading="lazy"
+                          width="48"
+                          height="48"
+                        >
+                      {% endif %}
+                      <div style="min-width: 0; flex: 1;">
+                        <a href="{{ product.url }}" style="font-size: 1.15rem; font-weight: 600; color: #1a1a1a; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          {{ product.title | escape }}
+                        </a>
+                        <span style="font-size: 1.1rem; color: #666; font-weight: 600; display: block; margin-top: 2px;">
+                          {{ product.price | money }}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="cart-drawer__cross-sell-add-btn"
+                      data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                      onclick="addCartCrossSellItem(this)"
+                      style="padding: 6px 14px; font-size: 1.1rem; font-weight: 700; background: #1a1a1a; color: #ffffff; border: none; border-radius: 20px; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease;"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                {%- endif -%}
+              {%- endunless -%}
+            {%- endfor -%}
+          {%- endcapture -%}
+          {%- if cross_items_count > 0 -%}
+            <div class="cart-drawer__cross-sell" style="padding: 1.2rem; background: #f9f9fb; border-top: 1px solid rgba(46,42,57,0.1); margin-top: 0.8rem; border-radius: 12px 12px 0 0;">
+              <h3 style="font-size: 1.2rem; font-weight: 700; color: #1a1a1a; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px;">
+                <span>🛒</span> Recommended Add-ons
+              </h3>
+              <div class="cart-drawer__cross-sell-items" style="display: flex; flex-direction: column; gap: 8px;">
+                {{ cross_sell_html }}
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+      </cart-drawer-items>
+      <div class="drawer__footer">
+        {%- if settings.show_cart_note -%}
+          <details id="Details-CartDrawer">
+            <summary>
+              <span class="summary__title">
+                {{ 'sections.cart.note' | t }}
+                {{- 'icon-caret.svg' | inline_asset_content -}}
+              </span>
+            </summary>
+            <cart-note class="cart__note field">
+              <label class="visually-hidden" for="CartDrawer-Note">{{ 'sections.cart.note' | t }}</label>
+              <textarea
+                id="CartDrawer-Note"
+                class="text-area text-area--resize-vertical field__input"
+                name="note"
+                placeholder="{{ 'sections.cart.note' | t }}"
+              >{{ cart.note }}</textarea>
+            </cart-note>
+          </details>
+        {%- endif -%}
+
+        <!-- Start blocks -->
+        <!-- Subtotals -->
+
+        <div class="cart-drawer__footer" {{ block.shopify_attributes }}>
+          <div>
+            {%- if cart.cart_level_discount_applications.size > 0 -%}
+              <ul class="discounts list-unstyled" role="list" aria-label="{{ 'customer.order.discount' | t }}">
+                {%- for discount in cart.cart_level_discount_applications -%}
+                  <li class="discounts__discount discounts__discount--end">
+                    {{- 'icon-discount.svg' | inline_asset_content -}}
+                    {{ discount.title | escape }}
+                    (-{{ discount.total_allocated_amount | money }})
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          </div>
+
+          <div class="totals" role="status">
+            <h2 class="totals__total">{{ 'sections.cart.estimated_total' | t }}</h2>
+            <p class="totals__total-value">{{ cart.total_price | money_with_currency }}</p>
+          </div>
+
+          <small class="tax-note caption-large rte">
+            {%- if cart.duties_included and cart.taxes_included -%}
+              {%- if shop.shipping_policy.body == blank -%}
+                {{ 'sections.cart.duties_and_taxes_included_shipping_at_checkout_without_policy' | t }}
+              {%- else -%}
+                {{
+                  'sections.cart.duties_and_taxes_included_shipping_at_checkout_with_policy_html'
+                  | t: link: shop.shipping_policy.url
+                }}
+              {%- endif -%}
+            {%- elsif cart.duties_included == false and cart.taxes_included -%}
+              {%- if shop.shipping_policy.body == blank -%}
+                {{ 'sections.cart.taxes_included_shipping_at_checkout_without_policy' | t }}
+              {%- else -%}
+                {{
+                  'sections.cart.taxes_included_shipping_at_checkout_with_policy_html'
+                  | t: link: shop.shipping_policy.url
+                }}
+              {%- endif -%}
+            {%- elsif cart.duties_included and cart.taxes_included == false -%}
+              {%- if shop.shipping_policy.body == blank -%}
+                {{ 'sections.cart.duties_included_taxes_at_checkout_shipping_at_checkout_without_policy' | t }}
+              {%- else -%}
+                {{
+                  'sections.cart.duties_included_taxes_at_checkout_shipping_at_checkout_with_policy_html'
+                  | t: link: shop.shipping_policy.url
+                }}
+              {%- endif -%}
+            {%- elsif cart.duties_included == false and cart.taxes_included == false -%}
+              {%- if shop.shipping_policy.body == blank -%}
+                {{ 'sections.cart.taxes_at_checkout_shipping_at_checkout_without_policy' | t }}
+              {%- else -%}
+                {{
+                  'sections.cart.taxes_at_checkout_shipping_at_checkout_with_policy_html'
+                  | t: link: shop.shipping_policy.url
+                }}
+              {%- endif -%}
+            {%- endif -%}
+          </small>
+        </div>
+
+        <!-- CTAs -->
+
+        <div class="cart__ctas" {{ block.shopify_attributes }}>
+          <button
+            type="submit"
+            id="CartDrawer-Checkout"
+            class="cart__checkout-button button"
+            name="checkout"
+            form="CartDrawer-Form"
+            {% if cart == empty %}
+              disabled
+            {% endif %}
+          >
+            {{ 'sections.cart.checkout' | t }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</cart-drawer>
+
+<script>
+  if (typeof addCartCrossSellItem !== 'function') {
+    function addCartCrossSellItem(btn) {
+      const variantId = btn.getAttribute('data-variant-id');
+      if (!variantId) return;
+      btn.disabled = true;
+      const originalText = btn.innerText;
+      btn.innerText = '...';
+
+      const formData = {
+        'items': [{
+          'id': parseInt(variantId, 10),
+          'quantity': 1
+        }],
+        'sections': 'cart-drawer,cart-icon-bubble'
+      };
+
+      fetch(window.Shopify.routes.root + 'cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        const cartDrawerItems = document.querySelector('cart-drawer-items');
+        if (cartDrawerItems && typeof cartDrawerItems.onCartUpdate === 'function') {
+          cartDrawerItems.onCartUpdate();
+        } else {
+          location.reload();
+        }
+      })
+      .catch(error => {
+        console.error('Error adding cross sell item:', error);
+        btn.disabled = false;
+        btn.innerText = originalText;
+      });
+    }
+  }
+</script>

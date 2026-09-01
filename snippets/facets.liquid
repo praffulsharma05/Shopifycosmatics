@@ -1,0 +1,58 @@
+{% comment %}
+  Renders facets (filtering and sorting)
+
+  Accepts:
+  - results: {Object} Collection or Search object
+  - enable_filtering: {Boolean} Show filtering when true
+  - enable_sorting: {Boolean} Show sorting when true
+  - filter_type: {String} Type of filter
+  - paginate: {Object}
+
+  Usage:
+  {% render 'facets', results: collection, enable_filtering: true, enable_sorting: true, filter_type: 'vertical', paginate: paginate %}
+{% endcomment %}
+
+{{ 'component-show-more.css' | asset_url | stylesheet_tag }}
+{{ 'component-swatch-input.css' | asset_url | stylesheet_tag }}
+{{ 'component-swatch.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign sort_by = results.sort_by | default: results.default_sort_by
+  assign total_active_values = 0
+  assign default_presentation = 'text'
+  if results.url
+    assign results_url = results.url
+  else
+    assign terms = results.terms | escape
+    assign results_url = '?q=' | append: terms | append: '&options%5Bprefix%5D=last&sort_by=' | append: sort_by
+  endif
+-%}
+
+<div
+  class="facets-container{% if filter_type == 'drawer' %} facets-container-drawer{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+  data-collection-id="{{ results.id }}"
+  data-collection-handle="{{ results.handle }}"
+  data-template="{{ template.name }}"
+>
+  {%- if filter_type == 'vertical' or filter_type == 'horizontal' -%}
+    {% render 'facets-desktop',
+      results: results,
+      enable_filtering: enable_filtering,
+      enable_sorting: enable_sorting,
+      filter_type: filter_type,
+      paginate: paginate,
+      results_url: results_url,
+      default_presentation: default_presentation
+    %}
+  {%- endif -%}
+
+  {% render 'facets-mobile',
+    results: results,
+    enable_filtering: enable_filtering,
+    enable_sorting: enable_sorting,
+    filter_type: filter_type,
+    paginate: paginate,
+    results_url: results_url,
+    default_presentation: default_presentation
+  %}
+</div>

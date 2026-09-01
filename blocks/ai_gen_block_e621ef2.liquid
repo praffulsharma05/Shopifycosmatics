@@ -1,0 +1,344 @@
+{% doc %}
+  @prompt
+    Create a full-screen hero banner section with a sticky/fixed bold typography text overlay that stays centered in the viewport as the user scrolls, while the background image scrolls vertically behind it (parallax effect). Requirements: full viewport height (100vh), sticky or fixed positioning for the headline text centered in the viewport, smooth parallax or scroll-based background image movement, clean minimalist and premium aesthetic, customizable headline text, subheading, background image, and text color via the Liquid schema settings., the text should stay within the box only
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-parallax-hero-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    display: block;
+  }
+
+  .ai-parallax-hero-background-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 120vh;
+    z-index: 1;
+  }
+
+  .ai-parallax-hero-background-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .ai-parallax-hero-background-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-parallax-hero-background-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-parallax-hero-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: {{ block.settings.overlay_color }};
+    opacity: {{ block.settings.overlay_opacity }};
+    z-index: 2;
+  }
+
+  .ai-parallax-hero-content-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    text-align: center;
+    max-width: 90%;
+    width: {{ block.settings.content_max_width }}px;
+  }
+
+  .ai-parallax-hero-headline-{{ ai_gen_id }} {
+    font-size: {{ block.settings.headline_size }}px;
+    font-weight: {{ block.settings.headline_weight }};
+    color: {{ block.settings.text_color }};
+    margin: 0 0 {{ block.settings.headline_spacing }}px;
+    line-height: 1.1;
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    text-transform: {% if block.settings.text_uppercase %}uppercase{% else %}none{% endif %};
+  }
+
+  .ai-parallax-hero-subheading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.subheading_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0;
+    line-height: 1.5;
+    opacity: {{ block.settings.subheading_opacity }};
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-parallax-hero-headline-{{ ai_gen_id }} {
+      font-size: calc({{ block.settings.headline_size }}px * 0.6);
+    }
+
+    .ai-parallax-hero-subheading-{{ ai_gen_id }} {
+      font-size: calc({{ block.settings.subheading_size }}px * 0.8);
+    }
+
+    .ai-parallax-hero-content-{{ ai_gen_id }} {
+      width: 95%;
+    }
+  }
+{% endstyle %}
+
+<parallax-hero-{{ ai_gen_id }}
+  class="ai-parallax-hero-{{ ai_gen_id }}"
+  data-parallax-speed="{{ block.settings.parallax_speed }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-parallax-hero-background-{{ ai_gen_id }}">
+    {% if block.settings.background_image %}
+      <img
+        src="{{ block.settings.background_image | image_url: width: 2400 }}"
+        alt="{{ block.settings.background_image.alt | escape }}"
+        loading="eager"
+        width="{{ block.settings.background_image.width }}"
+        height="{{ block.settings.background_image.height }}"
+      >
+    {% else %}
+      <div class="ai-parallax-hero-background-placeholder-{{ ai_gen_id }}">
+        {{ 'hero-apparel-1' | placeholder_svg_tag }}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="ai-parallax-hero-overlay-{{ ai_gen_id }}"></div>
+
+  <div class="ai-parallax-hero-content-{{ ai_gen_id }}">
+    {% if block.settings.headline != blank %}
+      <h1 class="ai-parallax-hero-headline-{{ ai_gen_id }}">
+        {{ block.settings.headline }}
+      </h1>
+    {% endif %}
+
+    {% if block.settings.subheading != blank %}
+      <p class="ai-parallax-hero-subheading-{{ ai_gen_id }}">
+        {{ block.settings.subheading }}
+      </p>
+    {% endif %}
+  </div>
+</parallax-hero-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class ParallaxHero{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.background = this.querySelector('.ai-parallax-hero-background-{{ ai_gen_id }}');
+        this.parallaxSpeed = parseFloat(this.dataset.parallaxSpeed) || 0.5;
+        this.handleScroll = this.handleScroll.bind(this);
+      }
+
+      connectedCallback() {
+        window.addEventListener('scroll', this.handleScroll, { passive: true });
+        this.handleScroll();
+      }
+
+      disconnectedCallback() {
+        window.removeEventListener('scroll', this.handleScroll);
+      }
+
+      handleScroll() {
+        const scrolled = window.pageYOffset;
+        const heroRect = this.getBoundingClientRect();
+        const heroTop = heroRect.top + scrolled;
+        const heroBottom = heroTop + heroRect.height;
+
+        if (scrolled < heroBottom) {
+          const offset = scrolled * this.parallaxSpeed;
+          this.background.style.transform = 'translateY(' + offset + 'px)';
+        }
+      }
+    }
+
+    customElements.define('parallax-hero-{{ ai_gen_id }}', ParallaxHero{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Parallax hero banner",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "range",
+      "id": "parallax_speed",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "label": "Parallax speed",
+      "default": 0.5
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "label": "Overlay opacity",
+      "default": 0.3
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "headline",
+      "label": "Headline",
+      "default": "Premium Collection"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Discover timeless elegance"
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "min": 400,
+      "max": 1200,
+      "step": 50,
+      "unit": "px",
+      "label": "Content max width",
+      "default": 800
+    },
+    {
+      "type": "header",
+      "content": "Text style"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "headline_size",
+      "min": 30,
+      "max": 120,
+      "step": 5,
+      "unit": "px",
+      "label": "Headline size",
+      "default": 80
+    },
+    {
+      "type": "select",
+      "id": "headline_weight",
+      "label": "Headline weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi-bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        },
+        {
+          "value": "900",
+          "label": "Black"
+        }
+      ],
+      "default": "700"
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "min": -2,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "label": "Letter spacing",
+      "default": 2
+    },
+    {
+      "type": "checkbox",
+      "id": "text_uppercase",
+      "label": "Uppercase text",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "headline_spacing",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Headline bottom spacing",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "subheading_size",
+      "min": 12,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Subheading size",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "subheading_opacity",
+      "min": 0.5,
+      "max": 1,
+      "step": 0.1,
+      "label": "Subheading opacity",
+      "default": 0.9
+    }
+  ],
+  "presets": [
+    {
+      "name": "Parallax hero banner"
+    }
+  ]
+}
+{% endschema %}

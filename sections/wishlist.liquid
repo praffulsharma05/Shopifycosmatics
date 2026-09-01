@@ -1,0 +1,178 @@
+{{ 'template-collection.css' | asset_url | stylesheet_tag }}
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'quick-add.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'quick-add.js' | asset_url }}" defer="defer"></script>
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: 10px !important;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  .wishlist-title {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    margin-bottom: 1.8rem !important;
+    font-size: calc(2.4rem + 1vw) !important;
+    letter-spacing: -0.02em;
+  }
+
+  @media screen and (max-width: 749px) {
+    .section-{{ section.id }}-padding {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+    .wishlist-title {
+      font-size: 2.4rem !important;
+      margin-bottom: 1.4rem !important;
+    }
+
+    #wishlist-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 0.8rem !important;
+      row-gap: 1.4rem !important;
+      width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    #wishlist-grid .grid__item {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: 15px !important;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="page-width section-{{ section.id }}-padding">
+  <h1 class="main-page-title page-title wishlist-title h0 center">
+    {{ page.title | escape | default: 'Wishlist' }}
+  </h1>
+
+  {%- if customer -%}
+    <div class="wishlist-grid-container">
+      <!-- Loader -->
+      <div id="wishlist-loader" class="wishlist-loader">
+        <div class="spinner"></div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="wishlist-empty" class="wishlist-empty hidden">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-heart"
+        >
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <p>Your wishlist is currently empty.</p>
+        <a href="/collections/all" class="button button--primary"> Continue Shopping </a>
+      </div>
+
+      <!-- Grid Container for Wishlist Cards -->
+      <ul
+        id="wishlist-grid"
+        class="grid product-grid grid--2-col-tablet-down grid--4-col-desktop hidden"
+        role="list"
+      >
+        <!-- Loaded dynamically via wishlist.js -->
+      </ul>
+    </div>
+  {%- else -%}
+    <div
+      class="wishlist-login-prompt"
+      style="max-width: 35rem; margin: 2rem auto; border: 0.1rem solid rgba(var(--color-foreground), 0.08); border-radius: var(--buttons-radius); text-align: center; background: rgba(var(--color-foreground), 0.02); box-shadow: 0 1rem 3rem rgba(0,0,0,0.02);"
+    >
+      <div
+        class="wishlist-login-prompt__icon"
+        style="margin-bottom: 2.5rem;  margin-top:1.5rem; display: inline-flex; align-items: center; justify-content: center; width: 8.8rem; height: 8.8rem; background: rgba(var(--color-foreground), 0.03); border-radius: 50%;"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="width: 4rem; height: 4rem; color: rgba(var(--color-foreground), 0.4);"
+        >
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+      </div>
+      <h2 class="h2" style="margin-top: 0; margin-bottom: 1.5rem; letter-spacing: 0.05rem;">Save your favorites</h2>
+      <p style="margin-top: 0; margin-bottom: 3.5rem; color: rgba(var(--color-foreground), 0.6); font-size: 1.6rem; line-height: 1.5;">
+        Create an account or sign in to view your wishlist and save items to your account.
+      </p>
+      <div
+        class="wishlist-login-prompt__actions"
+        style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;"
+      >
+        <a
+          href="/account/login?return_to=%2Fpages%2Fwishlist"
+          class="button button--primary"
+          style="min-width: 24rem; padding: 1.2rem 3rem; font-weight: 600;"
+        >
+          Sign In
+        </a>
+        <a
+          href="/account/login?return_to=%2Fpages%2Fwishlist"
+          class="link link--text"
+          style="font-size: 1.4rem; text-decoration: underline; text-underline-offset: 0.3rem;"
+        >
+          Create an Account
+        </a>
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Wishlist Page",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 36
+    }
+  ]
+}
+{% endschema %}

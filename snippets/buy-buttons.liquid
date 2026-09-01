@@ -1,0 +1,207 @@
+{% comment %}
+  Renders product buy-buttons with inline Wishlist Heart Icon beside Add to cart.
+  Accepts:
+  - product: {Object} product object.
+  - block: {Object} passing the block information.
+  - product_form_id: {String} product form id.
+  - section_id: {String} id of section to which this snippet belongs.
+  - show_pickup_availability: {Boolean} for the pickup availability. If true the pickup availability is rendered, false - not rendered (optional).
+
+  Usage:
+  {% render 'buy-buttons', block: block, product: product, product_form_id: product_form_id, section_id: section.id, show_pickup_availability: true %}
+{% endcomment %}
+<div {{ block.shopify_attributes }}>
+  {%- if product != blank -%}
+    {%- liquid
+      assign gift_card_recipient_feature_active = false
+      if block.settings.show_gift_card_recipient and product.gift_card?
+        assign gift_card_recipient_feature_active = true
+      endif
+
+      assign show_dynamic_checkout = false
+      if block.settings.show_dynamic_checkout and gift_card_recipient_feature_active == false
+        assign show_dynamic_checkout = true
+      endif
+    -%}
+
+    <product-form
+      class="product-form"
+      data-hide-errors="{{ gift_card_recipient_feature_active }}"
+      data-section-id="{{ section.id }}"
+    >
+      <div class="product-form__error-message-wrapper" role="alert" hidden>
+        <span class="svg-wrapper">
+          {{- 'icon-error.svg' | inline_asset_content -}}
+        </span>
+        <span class="product-form__error-message"></span>
+      </div>
+
+      {%- form 'product',
+        product,
+        id: product_form_id,
+        class: 'form',
+        novalidate: 'novalidate',
+        data-type: 'add-to-cart-form'
+      -%}
+        <input
+          type="hidden"
+          name="id"
+          value="{{ product.selected_or_first_available_variant.id }}"
+          {% if product.selected_or_first_available_variant.available == false
+            or quantity_rule_soldout
+            or product.selected_or_first_available_variant == null
+          %}
+            disabled
+          {% endif %}
+          class="product-variant-id"
+        >
+
+        {%- if gift_card_recipient_feature_active -%}
+          {%- render 'gift-card-recipient-form', product: product, form: form, section: section -%}
+        {%- endif -%}
+
+        <div class="product-form__buttons">
+          {%- liquid
+            assign check_against_inventory = true
+            if product.selected_or_first_available_variant.inventory_management != 'shopify' or product.selected_or_first_available_variant.inventory_policy == 'continue'
+              assign check_against_inventory = false
+            endif
+            if product.selected_or_first_available_variant.quantity_rule.min > product.selected_or_first_available_variant.inventory_quantity and check_against_inventory
+              assign quantity_rule_soldout = true
+            endif
+          -%}
+          <div
+            class="product-form__buttons-row"
+            style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 8px !important; width: 100% !important; max-width: 100% !important; align-items: center !important; margin-bottom: 8px !important; box-sizing: border-box !important;"
+          >
+            <button
+              id="ProductSubmitButton-{{ section_id }}"
+              type="submit"
+              name="add"
+              class="product-form__submit button button--secondary"
+              {% if product.selected_or_first_available_variant.available == false
+                or quantity_rule_soldout
+                or product.selected_or_first_available_variant == null
+              %}
+                disabled
+              {% endif %}
+            >
+              <span>
+                {%- if product.selected_or_first_available_variant == null -%}
+                  {{ 'products.product.unavailable' | t }}
+                {%- elsif product.selected_or_first_available_variant.available == false or quantity_rule_soldout -%}
+                  {{ 'products.product.sold_out' | t }}
+                {%- else -%}
+                  Add to cart
+                {%- endif -%}
+              </span>
+              {%- render 'loading-spinner' -%}
+            </button>
+
+            <button
+              type="button"
+              class="button-wishlist-icon button-wishlist-pdp-inline"
+              aria-label="Add to wishlist"
+              data-product-handle="{{ product.handle }}"
+              data-product-title="{{ product.title | escape }}"
+              data-product-image="{{ product.featured_image | image_url: width: 120 }}"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2e2a39"
+                stroke-width="1.8"
+                class="icon icon-heart-card"
+                style="width: 20px !important; height: 20px !important;"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </button>
+          </div>
+
+          {%- if show_dynamic_checkout -%}
+            <div style="width: 100%; margin-top: 0.8rem;">
+              {{ form | payment_button }}
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endform -%}
+    </product-form>
+
+    <div class="product-trust-highlights">
+      <div class="trust-item">
+        <span class="trust-icon">✦</span>
+        <span
+          >Earn upto {{ product.selected_or_first_available_variant.price | divided_by: 100 | default: 449 }} Points on
+          this purchase</span
+        >
+        <span class="trust-info-icon" title="Loyalty Points">ⓘ</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-icon">🚚</span>
+        <span>Your order will be shipped within 24 to 48 hours.</span>
+      </div>
+    </div>
+
+    <div class="reasons-to-love">
+      <h3 class="reasons-to-love__title">REASONS TO LOVE:</h3>
+      <ul class="reasons-to-love__list">
+        <li>A multi-purpose 2-in-1 cleanser, crafted for modern men's daily grooming</li>
+        <li>Effectively removes the build-up of dirt, oil, and sweat</li>
+        <li>Infused with the classic fragrance of Musk & Amber</li>
+        <li>Enriched with high-performance and restorative blend of Vetiver, Patchouli, and Niacinamide</li>
+        <li>Delivers a cooling post-bath feel</li>
+        <li>Suitable for all skin types</li>
+      </ul>
+    </div>
+  {%- else -%}
+    <div class="product-form">
+      <div class="product-form__buttons form">
+        <button
+          type="submit"
+          name="add"
+          class="product-form__submit button button--full-width button--primary"
+          disabled
+        >
+          {{ 'products.product.sold_out' | t }}
+        </button>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if show_pickup_availability -%}
+    {{ 'component-pickup-availability.css' | asset_url | stylesheet_tag }}
+
+    {%- assign pick_up_availabilities = product.selected_or_first_available_variant.store_availabilities
+      | where: 'pick_up_enabled', true
+    -%}
+
+    <pickup-availability
+      class="product__pickup-availabilities quick-add-hidden"
+      {% if product.selected_or_first_available_variant.available and pick_up_availabilities.size > 0 %}
+        available
+      {% endif %}
+      data-root-url="{{ routes.root_url }}"
+      data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+      data-has-only-default-variant="{{ product.has_only_default_variant }}"
+      data-product-page-color-scheme="gradient color-{{ section.settings.color_scheme }}"
+    >
+      <template>
+        <pickup-availability-preview class="pickup-availability-preview">
+          <span class="svg-wrapper">
+            {{- 'icon-unavailable.svg' | inline_asset_content -}}
+          </span>
+          <div class="pickup-availability-info">
+            <p class="caption-large">{{ 'products.product.pickup_availability.unavailable' | t }}</p>
+            <button class="pickup-availability-button link link--text underlined-link">
+              {{ 'products.product.pickup_availability.refresh' | t }}
+            </button>
+          </div>
+        </pickup-availability-preview>
+      </template>
+    </pickup-availability>
+
+    <script src="{{ 'pickup-availability.js' | asset_url }}" defer="defer"></script>
+  {%- endif -%}
+</div>

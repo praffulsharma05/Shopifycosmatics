@@ -1,0 +1,1446 @@
+<style>
+  /* ===== CUSTOMER REVIEWS SECTION ===== */
+  .cr-section {
+    max-width: 120rem;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 1.5rem;
+    font-family: inherit;
+    color: rgb(var(--color-foreground));
+  }
+  .cr-heading {
+    text-align: center;
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 3rem;
+  }
+
+  /* Rating Summary Row */
+  .cr-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(var(--color-foreground), 0.1);
+  }
+  .cr-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-shrink: 0;
+  }
+  .cr-avg-stars { display: flex; gap: 2px; }
+  .cr-avg-stars .cr-star { color: #f5a623; font-size: 1.6rem; }
+  .cr-avg-stars .cr-star--empty { color: #ccc; font-size: 1.6rem; }
+  .cr-avg-text { font-size: 1.5rem; font-weight: 600; }
+  .cr-avg-sub { font-size: 1.3rem; color: rgba(var(--color-foreground),0.6); }
+
+  /* Star bars */
+  .cr-bars { flex: 1; max-width: 35rem; min-width: 22rem; }
+  .cr-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.4rem;
+    font-size: 1.3rem;
+  }
+  .cr-bar-stars { display: flex; gap: 1px; color: #f5a623; font-size: 1.2rem; white-space: nowrap; }
+  .cr-bar-track {
+    flex: 1;
+    height: 1rem;
+    background: rgba(var(--color-foreground), 0.08);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .cr-bar-fill {
+    height: 100%;
+    background: rgb(var(--color-foreground));
+    border-radius: 5px;
+    transition: width 0.6s ease;
+  }
+  .cr-bar-count { font-size: 1.2rem; min-width: 2rem; text-align: right; }
+
+  /* Action buttons */
+  .cr-actions { display: flex; flex-direction: column; gap: 1rem; flex-shrink: 0; }
+  .cr-btn {
+    display: inline-block;
+    padding: 1.2rem 3rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    border: 2px solid rgb(var(--color-foreground));
+    min-width: 18rem;
+  }
+  .cr-btn--primary {
+    background: rgb(var(--color-foreground));
+    color: rgb(var(--color-background));
+  }
+  .cr-btn--primary:hover { opacity: 0.85; }
+  .cr-btn--outline {
+    background: transparent;
+    color: rgb(var(--color-foreground));
+  }
+  .cr-btn--outline:hover {
+    background: rgb(var(--color-foreground));
+    color: rgb(var(--color-background));
+  }
+
+  /* No reviews message */
+  .cr-empty {
+    text-align: center;
+    padding: 0.5rem 0;
+    font-size: 1.5rem;
+    color: rgba(var(--color-foreground), 0.5);
+  }
+
+  /* Review list from dynamic data */
+  .cr-reviews-list {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0 0;
+  }
+  .cr-review {
+    padding: 2.5rem 0;
+    border-bottom: 1px solid rgba(var(--color-foreground), 0.08);
+  }
+  .cr-review:last-child { border-bottom: none; }
+  .cr-review-stars { display: flex; gap: 2px; margin-bottom: 0.6rem; }
+  .cr-review-stars .cr-star { color: #f5a623; font-size: 1.5rem; }
+  .cr-review-stars .cr-star--empty { color: #ccc; font-size: 1.5rem; }
+  .cr-reviewer {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+  }
+  .cr-reviewer-name { font-weight: 400; }
+  .cr-verified {
+    display: inline-block;
+    background: rgb(var(--color-foreground));
+    color: rgb(var(--color-background));
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0.2rem 0.8rem;
+    border-radius: 3px;
+  }
+  .cr-review-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .cr-review-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .cr-review-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .cr-review-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+    gap: 0.8rem;
+    max-width: 22rem;
+  }
+  .cr-review-date {
+    font-size: 1.3rem;
+    color: rgba(var(--color-foreground), 0.55);
+    white-space: nowrap;
+    text-align: right;
+  }
+  .cr-review-photos {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+  .cr-review-photo {
+    width: 6rem;
+    height: 6rem;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid rgba(var(--color-foreground), 0.15);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .cr-review-photo:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  }
+  @media screen and (max-width: 600px) {
+    .cr-review-inner {
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .cr-review-right {
+      align-items: flex-start;
+      max-width: 100%;
+    }
+    .cr-review-date {
+      text-align: left;
+    }
+    .cr-review-photos {
+      justify-content: flex-start;
+    }
+  }
+  .cr-review-share {
+    display: flex;
+    gap: 1.2rem;
+  }
+  .cr-review-share a {
+    color: rgb(var(--color-foreground));
+    text-decoration: none;
+    font-size: 1.5rem;
+    transition: opacity 0.2s;
+  }
+  .cr-review-share a:hover { opacity: 0.6; }
+
+  /* Sort dropdown */
+  .cr-sort {
+    margin-bottom: 0.5rem;
+    font-size: 1.4rem;
+  }
+  .cr-sort select {
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: rgb(var(--color-foreground));
+    padding: 0.4rem 0;
+    appearance: auto;
+  }
+
+  /* ===== POPUP MODAL ===== */
+  .cr-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: crFadeIn 0.25s ease;
+  }
+  .cr-overlay.active { display: flex; }
+  @keyframes crFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .cr-modal {
+    background: rgb(var(--color-background));
+    border-radius: 16px;
+    max-width: 56rem;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 4rem 3.5rem;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+    animation: crSlideUp 0.35s ease;
+  }
+  .cr-modal-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.8rem;
+    background: none;
+    border: none;
+    font-size: 2.8rem;
+    cursor: pointer;
+    color: rgba(var(--color-foreground), 0.5);
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  .cr-modal-close:hover { color: rgb(var(--color-foreground)); }
+  .cr-modal-title {
+    font-size: 2.4rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  .cr-modal-sub {
+    text-align: center;
+    font-size: 1.4rem;
+    color: rgba(var(--color-foreground), 0.6);
+    margin-bottom: 2.5rem;
+  }
+  .cr-modal-product {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .cr-modal-product img {
+    width: 14rem;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+  .cr-modal-product-name {
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  /* Star picker in modal */
+  .cr-star-picker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .cr-star-picker .cr-pick-star {
+    font-size: 4rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.15s, transform 0.15s;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+  }
+  .cr-star-picker .cr-pick-star:hover,
+  .cr-star-picker .cr-pick-star.active { color: #f5a623; transform: scale(1.15); }
+  .cr-star-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 22rem;
+    margin: 0 auto 2.5rem;
+    font-size: 1.3rem;
+    color: rgba(var(--color-foreground), 0.5);
+  }
+
+  /* Modal form fields */
+  .cr-form-group { margin-bottom: 2rem; }
+  .cr-form-group label {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+  }
+  .cr-form-group input,
+  .cr-form-group textarea {
+    width: 100%;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid rgba(var(--color-foreground), 0.15);
+    border-radius: 8px;
+    font-size: 1.4rem;
+    background: rgb(var(--color-background));
+    color: rgb(var(--color-foreground));
+    transition: border-color 0.2s;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+  .cr-form-group input:focus,
+  .cr-form-group textarea:focus {
+    outline: none;
+    border-color: rgb(var(--color-foreground));
+  }
+  .cr-form-group textarea { min-height: 12rem; resize: vertical; }
+
+  /* Image upload area */
+  .cr-upload-area {
+    border: 2px dashed rgba(var(--color-foreground), 0.15);
+    border-radius: 10px;
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: rgba(var(--color-foreground), 0.02);
+  }
+  .cr-upload-area:hover {
+    border-color: rgba(var(--color-foreground), 0.35);
+    background: rgba(var(--color-foreground), 0.04);
+  }
+  .cr-upload-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    color: rgba(var(--color-foreground), 0.35);
+  }
+  .cr-upload-text {
+    font-size: 1.4rem;
+    color: rgba(var(--color-foreground), 0.5);
+  }
+  .cr-upload-text span { font-weight: 600; color: rgb(var(--color-foreground)); text-decoration: underline; }
+  .cr-upload-preview {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .cr-upload-preview-item {
+    position: relative;
+    width: 7rem;
+    height: 7rem;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .cr-upload-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .cr-upload-preview-item .cr-remove-img {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* Submit button in modal */
+  .cr-submit-btn {
+    width: 100%;
+    padding: 1.5rem;
+    background: rgb(var(--color-foreground));
+    color: rgb(var(--color-background));
+    border: 2px solid rgb(var(--color-foreground));
+    border-radius: 8px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    margin-top: 1rem;
+  }
+  .cr-submit-btn:hover {
+    background: transparent;
+    color: rgb(var(--color-foreground));
+  }
+  .cr-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .cr-form-msg {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+
+  /* Responsive */
+  @media screen and (max-width: 749px) {
+    .cr-summary { flex-direction: column; align-items: flex-start; }
+    .cr-bars { max-width: 100%; }
+    .cr-actions { flex-direction: row; width: 100%; }
+    .cr-btn { flex: 1; min-width: auto; padding: 1rem 1.5rem; font-size: 1.3rem; }
+    .cr-modal { padding: 2.5rem 2rem; }
+  }
+</style>
+
+{%- liquid
+  assign custom_reviews = product.metafields.custom.reviews_list.value
+
+  assign total_count = 0
+  assign total_sum = 0
+  assign count_5 = 0
+  assign count_4 = 0
+  assign count_3 = 0
+  assign count_2 = 0
+  assign count_1 = 0
+
+  if custom_reviews != blank and custom_reviews.size > 0
+    for rev in custom_reviews
+      assign r_val = rev.rating.value | default: rev.rating | plus: 0
+      assign total_count = total_count | plus: 1
+      assign total_sum = total_sum | plus: r_val
+      if r_val == 5
+        assign count_5 = count_5 | plus: 1
+      elsif r_val == 4
+        assign count_4 = count_4 | plus: 1
+      elsif r_val == 3
+        assign count_3 = count_3 | plus: 1
+      elsif r_val == 2
+        assign count_2 = count_2 | plus: 1
+      elsif r_val == 1
+        assign count_1 = count_1 | plus: 1
+      endif
+    endfor
+  endif
+
+  if total_count > 0
+    assign avg_rating = total_sum | times: 1.0 | divided_by: total_count | round: 1
+  else
+    assign avg_rating = product.metafields.reviews.rating.value.rating | default: product.metafields.reviews.rating.value | default: 0 | times: 1.0
+    assign total_count = product.metafields.reviews.rating_count.value | default: product.metafields.reviews.rating_count | default: 0 | plus: 0
+  endif
+
+  assign full_stars = avg_rating | floor
+  assign has_half = false
+  assign decimal = avg_rating | minus: full_stars
+  if decimal >= 0.25 and decimal < 0.75
+    assign has_half = true
+  elsif decimal >= 0.75
+    assign full_stars = full_stars | plus: 1
+  endif
+  assign empty_stars = 5 | minus: full_stars
+  if has_half
+    assign empty_stars = empty_stars | minus: 1
+  endif
+
+  if total_count > 0
+    assign pct_5 = count_5 | times: 100.0 | divided_by: total_count | round
+    assign pct_4 = count_4 | times: 100.0 | divided_by: total_count | round
+    assign pct_3 = count_3 | times: 100.0 | divided_by: total_count | round
+    assign pct_2 = count_2 | times: 100.0 | divided_by: total_count | round
+    assign pct_1 = count_1 | times: 100.0 | divided_by: total_count | round
+  else
+    assign pct_5 = 0
+    assign pct_4 = 0
+    assign pct_3 = 0
+    assign pct_2 = 0
+    assign pct_1 = 0
+  endif
+-%}
+
+<div class="cr-section page-width">
+  <h2 class="cr-heading">Customer Reviews</h2>
+
+  <!-- Rating Summary — Dynamic from product metafields / metaobjects -->
+  <div class="cr-summary">
+    <div class="cr-summary-left">
+      <div>
+        <div class="cr-avg-stars">
+          {%- for i in (1..full_stars) -%}
+            <span class="cr-star">★</span>
+          {%- endfor -%}
+          {%- if has_half -%}
+            <span class="cr-star" style="opacity:0.6;">★</span>
+          {%- endif -%}
+          {%- for i in (1..empty_stars) -%}
+            <span class="cr-star--empty">★</span>
+          {%- endfor -%}
+        </div>
+        {%- if total_count > 0 -%}
+          <div class="cr-avg-text" id="crAvgText">{{ avg_rating }} out of 5</div>
+          <div class="cr-avg-sub" id="crAvgSub">Based on {{ total_count }} review{{ total_count | pluralize: '', 's' }}</div>
+        {%- else -%}
+          <div class="cr-avg-text" id="crAvgText">No reviews yet</div>
+          <div class="cr-avg-sub" id="crAvgSub">Be the first to write a review!</div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="cr-bars" id="crBarsWrap" {% if total_count == 0 %}style="display:none;"{% endif %}>
+      <div class="cr-bar-row">
+        <div class="cr-bar-stars"><span style="color:#f5a623;">★★★★★</span></div>
+        <div class="cr-bar-track"><div class="cr-bar-fill" style="width:{{ pct_5 }}%;" data-star="5"></div></div>
+        <span class="cr-bar-count" data-star="5">{{ count_5 }}</span>
+      </div>
+      <div class="cr-bar-row">
+        <div class="cr-bar-stars"><span style="color:#f5a623;">★★★★</span><span style="color:#ccc;">★</span></div>
+        <div class="cr-bar-track"><div class="cr-bar-fill" style="width:{{ pct_4 }}%;" data-star="4"></div></div>
+        <span class="cr-bar-count" data-star="4">{{ count_4 }}</span>
+      </div>
+      <div class="cr-bar-row">
+        <div class="cr-bar-stars"><span style="color:#f5a623;">★★★</span><span style="color:#ccc;">★★</span></div>
+        <div class="cr-bar-track"><div class="cr-bar-fill" style="width:{{ pct_3 }}%;" data-star="3"></div></div>
+        <span class="cr-bar-count" data-star="3">{{ count_3 }}</span>
+      </div>
+      <div class="cr-bar-row">
+        <div class="cr-bar-stars"><span style="color:#f5a623;">★★</span><span style="color:#ccc;">★★★</span></div>
+        <div class="cr-bar-track"><div class="cr-bar-fill" style="width:{{ pct_2 }}%;" data-star="2"></div></div>
+        <span class="cr-bar-count" data-star="2">{{ count_2 }}</span>
+      </div>
+      <div class="cr-bar-row">
+        <div class="cr-bar-stars"><span style="color:#f5a623;">★</span><span style="color:#ccc;">★★★★</span></div>
+        <div class="cr-bar-track"><div class="cr-bar-fill" style="width:{{ pct_1 }}%;" data-star="1"></div></div>
+        <span class="cr-bar-count" data-star="1">{{ count_1 }}</span>
+      </div>
+    </div>
+
+    <div class="cr-actions">
+      <button class="cr-btn cr-btn--primary" id="crWriteReviewBtn" type="button">Write a review</button>
+      <button class="cr-btn cr-btn--outline" id="crAskQuestionBtn" type="button">Ask a question</button>
+      <button class="cr-btn cr-btn--admin" id="crAdminPanelBtn" type="button" style="{% unless section.settings.show_admin_button %}display: none;{% else %}display: inline-flex;{% endunless %} background: #111827; color: #ffffff; border: 1px solid #374151; align-items: center; justify-content: center; gap: 6px; font-weight: 600;">
+        <span>🛡️</span> Admin Moderation
+      </button>
+    </div>
+  </div>
+
+  <!-- Sort (only visible when reviews exist) -->
+  <div class="cr-sort" id="crSortWrap" {% if total_count == 0 %}style="display:none;"{% endif %}>
+    <select id="crSortSelect">
+      <option value="newest">Most Recent</option>
+      <option value="highest">Highest Rating</option>
+      <option value="lowest">Lowest Rating</option>
+    </select>
+  </div>
+
+  <!-- Dynamic reviews list -->
+  <div id="crDynamicReviews">
+    {%- if custom_reviews != blank and custom_reviews.size > 0 -%}
+      <ul class="cr-reviews-list" id="crServerReviews">
+        {%- for rev in custom_reviews -%}
+          {%- assign r_rating = rev.rating.value | default: rev.rating | plus: 0 -%}
+          <li class="cr-review" data-rating="{{ r_rating }}">
+            <div class="cr-review-inner">
+              <div class="cr-review-content">
+                <div class="cr-review-stars">
+                  {%- for s in (1..5) -%}
+                    {%- if s <= r_rating -%}<span class="cr-star">★</span>{%- else -%}<span class="cr-star--empty">★</span>{%- endif -%}
+                  {%- endfor -%}
+                </div>
+                <div class="cr-reviewer">
+                  <span class="cr-reviewer-name"><strong>{{ rev.reviewer_name | default: rev.name | escape }}</strong></span>
+                  {%- if rev.verified == true or rev.verified == 'true' -%}
+                    <span class="cr-verified">Verified Buyer</span>
+                  {%- endif -%}
+                </div>
+                {%- assign r_title = rev.review_title | default: rev.title | escape -%}
+                {%- if r_title != blank -%}
+                  <div class="cr-review-title">{{ r_title }}</div>
+                {%- endif -%}
+                <div class="cr-review-body">{{ rev.review_body | default: rev.body | default: rev.review | escape }}</div>
+              </div>
+
+              <div class="cr-review-right">
+                <div class="cr-review-date">{{ rev.created_at | date: "%b %d, %Y" | default: rev.date | escape }}</div>
+                {%- assign r_images = rev.images.value | default: rev.images -%}
+                {%- if r_images != blank -%}
+                  <div class="cr-review-photos">
+                    {%- for img in r_images -%}
+                      <img src="{{ img | image_url: width: 200 }}" alt="Customer review photo" class="cr-review-photo" loading="lazy" width="200" height="200">
+                    {%- endfor -%}
+                  </div>
+                {%- endif -%}
+              </div>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+
+  <!-- Fallback: empty state -->
+  <div class="cr-empty" id="crEmptyState" {% if total_count > 0 %}style="display:none;"{% endif %}>
+    No reviews yet — be the first to share your experience!
+  </div>
+</div>
+
+<!-- ===== WRITE A REVIEW POPUP ===== -->
+<div class="cr-overlay" id="crReviewOverlay">
+  <div class="cr-modal">
+    <button class="cr-modal-close" id="crModalClose" type="button" aria-label="Close">&times;</button>
+    <h3 class="cr-modal-title">How would you rate this product?</h3>
+    <p class="cr-modal-sub">We would love it if you would share a bit about your experience.</p>
+
+    <div class="cr-modal-product">
+      {%- if product.featured_image -%}
+        <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title | escape }}" loading="lazy" width="300" height="300">
+      {%- endif -%}
+      <div class="cr-modal-product-name">{{ product.title }}</div>
+    </div>
+
+    <!-- Star Picker -->
+    <div class="cr-star-picker" id="crStarPicker">
+      <button class="cr-pick-star" data-value="1" type="button">★</button>
+      <button class="cr-pick-star" data-value="2" type="button">★</button>
+      <button class="cr-pick-star" data-value="3" type="button">★</button>
+      <button class="cr-pick-star" data-value="4" type="button">★</button>
+      <button class="cr-pick-star" data-value="5" type="button">★</button>
+    </div>
+    <div class="cr-star-labels"><span>Poor</span><span>Great</span></div>
+
+    <form id="crReviewForm" novalidate>
+      <div class="cr-form-group">
+        <label for="crName">Your Name *</label>
+        <input type="text" id="crName" placeholder="Enter your name" required>
+      </div>
+      <div class="cr-form-group">
+        <label for="crEmail">Email *</label>
+        <input type="email" id="crEmail" placeholder="Enter your email" required>
+      </div>
+      <div class="cr-form-group">
+        <label for="crTitle">Review Title</label>
+        <input type="text" id="crTitle" placeholder="Give your review a title">
+      </div>
+      <div class="cr-form-group">
+        <label for="crBody">Your Review *</label>
+        <textarea id="crBody" placeholder="Write your review here..." required></textarea>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="cr-form-group">
+        <label>Upload Photos (optional)</label>
+        <div class="cr-upload-area" id="crUploadArea">
+          <div class="cr-upload-icon">📷</div>
+          <div class="cr-upload-text"><span>Click to upload</span> or drag and drop<br>PNG, JPG up to 5MB</div>
+        </div>
+        <input type="file" id="crFileInput" accept="image/*" multiple style="display:none;">
+        <div class="cr-upload-preview" id="crUploadPreview"></div>
+      </div>
+
+      <button type="submit" class="cr-submit-btn" id="crSubmitBtn">Submit Review</button>
+      <div class="cr-form-msg" id="crFormMsg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== ADMIN MODERATION PANEL POPUP ===== -->
+<div class="cr-overlay" id="crAdminOverlay">
+  <div class="cr-modal" style="max-width: 80rem; padding: 3rem 2.5rem;">
+    <button class="cr-modal-close" id="crAdminModalClose" type="button" aria-label="Close">&times;</button>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-bottom: 2px solid #f3f4f6; padding-bottom: 1.2rem; margin-bottom: 1.8rem;">
+      <div>
+        <h3 class="cr-modal-title" style="text-align: left; margin: 0; font-size: 2.2rem; display: flex; align-items: center; gap: 8px;">
+          <span>🛡️</span> Admin Review Moderation Panel
+        </h3>
+        <p style="margin: 4px 0 0 0; font-size: 1.3rem; color: #6b7280;">Approve or reject customer reviews for product <strong>{{ product.title }}</strong> (Product ID: {{ product.id }})</p>
+      </div>
+      <div style="font-size: 1.2rem; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-weight: 700;">
+        Admin Mode Active
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem;" id="crAdminTabs">
+      <button type="button" class="cr-admin-tab active" data-tab="pending" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #fef3c7; color: #92400e; font-weight: 700; cursor: pointer; font-size: 1.3rem;">
+        ⏳ Pending Approval (<span id="crCountPending">0</span>)
+      </button>
+      <button type="button" class="cr-admin-tab" data-tab="approved" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; font-weight: 600; cursor: pointer; font-size: 1.3rem;">
+        ✅ Approved (<span id="crCountApproved">0</span>)
+      </button>
+      <button type="button" class="cr-admin-tab" data-tab="rejected" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; font-weight: 600; cursor: pointer; font-size: 1.3rem;">
+        ❌ Rejected (<span id="crCountRejected">0</span>)
+      </button>
+      <button type="button" class="cr-admin-tab" data-tab="all" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; font-weight: 600; cursor: pointer; font-size: 1.3rem;">
+        All Reviews (<span id="crCountAll">0</span>)
+      </button>
+    </div>
+
+    <!-- Admin Reviews List Container -->
+    <div id="crAdminList" style="display: flex; flex-direction: column; gap: 1.2rem; max-height: 55vh; overflow-y: auto; padding-right: 4px;">
+      <!-- Dynamic Admin Review Cards will render here -->
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  /* ===== Open / Close modal ===== */
+  const overlay = document.getElementById('crReviewOverlay');
+  const openBtn = document.getElementById('crWriteReviewBtn');
+  const closeBtn = document.getElementById('crModalClose');
+
+  function openModal(el) {
+    if (!el) return;
+    el.classList.add('active');
+    const modal = el.querySelector('.cr-modal');
+    if (modal) modal.scrollTop = 0;
+  }
+
+  function closeModal(el) {
+    if (!el) return;
+    el.classList.remove('active');
+  }
+
+  if (openBtn && overlay) {
+    openBtn.addEventListener('click', () => {
+      openModal(overlay);
+      setTimeout(() => {
+        if (closeBtn) closeBtn.focus();
+      }, 50);
+    });
+  }
+  if (closeBtn && overlay) {
+    closeBtn.addEventListener('click', () => { closeModal(overlay); });
+  }
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal(overlay);
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (overlay) closeModal(overlay);
+      const admOverlay = document.getElementById('crAdminOverlay');
+      if (admOverlay) closeModal(admOverlay);
+    }
+  });
+
+  /* ===== Star picker ===== */
+  let selectedRating = 0;
+  const stars = document.querySelectorAll('#crStarPicker .cr-pick-star');
+  stars.forEach(star => {
+    star.addEventListener('mouseenter', () => {
+      const val = parseInt(star.dataset.value);
+      stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= val));
+    });
+    star.addEventListener('click', () => {
+      selectedRating = parseInt(star.dataset.value);
+      stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
+    });
+  });
+  const picker = document.getElementById('crStarPicker');
+  if (picker) {
+    picker.addEventListener('mouseleave', () => {
+      stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
+    });
+  }
+
+  /* ===== Image upload ===== */
+  const uploadArea = document.getElementById('crUploadArea');
+  const fileInput = document.getElementById('crFileInput');
+  const previewContainer = document.getElementById('crUploadPreview');
+  let uploadedFiles = [];
+  let uploadedDataUrls = [];
+
+  if (uploadArea && fileInput) {
+    uploadArea.addEventListener('click', (e) => {
+      if (e.target !== fileInput) fileInput.click();
+    });
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'rgb(var(--color-foreground))'; });
+    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '';
+      if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files) handleFiles(fileInput.files);
+    });
+  }
+
+  function compressImage(file, maxWidth, maxHeight, quality, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const rawDataUrl = e.target.result;
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          callback(dataUrl);
+        } catch(err) {
+          callback(rawDataUrl);
+        }
+      };
+      img.onerror = () => callback(rawDataUrl);
+      img.src = rawDataUrl;
+    };
+    reader.onerror = () => console.error('FileReader error');
+    reader.readAsDataURL(file);
+  }
+
+  function handleFiles(files) {
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      if (uploadedFiles.length >= 5) return;
+      uploadedFiles.push(file);
+
+      compressImage(file, 600, 600, 0.6, (compressedDataUrl) => {
+        uploadedDataUrls.push(compressedDataUrl);
+        const item = document.createElement('div');
+        item.className = 'cr-upload-preview-item';
+        item.innerHTML = '<img src="' + compressedDataUrl + '"><button class="cr-remove-img" type="button">&times;</button>';
+        item.querySelector('.cr-remove-img').addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const idx = Array.from(previewContainer.children).indexOf(item);
+          if (idx > -1) {
+            uploadedFiles.splice(idx, 1);
+            uploadedDataUrls.splice(idx, 1);
+            item.remove();
+          }
+        });
+        previewContainer.appendChild(item);
+      });
+    });
+  }
+
+  /* ===== LocalStorage & Dynamic Reviews Sync ===== */
+  /* ===== LocalStorage & Admin Moderation Logic ===== */
+  const productId = "{{ product.id }}";
+  const storageKey = 'shopify_custom_reviews_' + productId;
+
+  function getLocalReviews() {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return [];
+      const list = JSON.parse(raw);
+      // Ensure all items have status (defaulting old entries to APPROVED for backwards compatibility)
+      return list.map(item => {
+        if (!item.status) item.status = 'APPROVED';
+        if (!item.id) item.id = 'rev_' + Math.random().toString(36).substr(2, 9);
+        return item;
+      });
+    } catch(e) { return []; }
+  }
+
+  function saveAllLocalReviews(reviews) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(reviews));
+    } catch(e) {
+      console.warn('LocalStorage save error:', e);
+    }
+  }
+
+  function saveLocalReview(rev) {
+    const reviews = getLocalReviews();
+    rev.id = 'rev_' + Date.now();
+    rev.status = 'PENDING'; // All new submissions require Admin Approval
+    reviews.unshift(rev);
+    saveAllLocalReviews(reviews);
+  }
+
+  // PUBLIC PRODUCT PAGE: Only render APPROVED reviews!
+  function renderDynamicReviews() {
+    const allRevs = getLocalReviews();
+    const approvedRevs = allRevs.filter(r => r.status === 'APPROVED');
+    
+    const dynamicContainer = document.getElementById('crDynamicReviews');
+    const emptyState = document.getElementById('crEmptyState');
+    const sortWrap = document.getElementById('crSortWrap');
+    const barsWrap = document.getElementById('crBarsWrap');
+    
+    let serverReviewsList = document.getElementById('crServerReviews');
+    if (!serverReviewsList) {
+      serverReviewsList = document.createElement('ul');
+      serverReviewsList.className = 'cr-reviews-list';
+      serverReviewsList.id = 'crServerReviews';
+      if (dynamicContainer) dynamicContainer.appendChild(serverReviewsList);
+    }
+
+    if (serverReviewsList) {
+      serverReviewsList.querySelectorAll('.cr-local-review').forEach(el => el.remove());
+    }
+
+    if (approvedRevs.length > 0 && serverReviewsList) {
+      approvedRevs.slice().reverse().forEach(rev => {
+        const li = document.createElement('li');
+        li.className = 'cr-review cr-local-review';
+        li.dataset.rating = rev.rating;
+        
+        let starsHtml = '';
+        for (let s = 1; s <= 5; s++) {
+          starsHtml += s <= rev.rating ? '<span class="cr-star">★</span>' : '<span class="cr-star--empty">★</span>';
+        }
+
+        let imagesArr = [];
+        if (Array.isArray(rev.images)) {
+          imagesArr = rev.images;
+        } else if (typeof rev.images === 'string' && rev.images.length > 0) {
+          imagesArr = [rev.images];
+        }
+
+        let imagesHtml = '';
+        if (imagesArr && imagesArr.length > 0) {
+          imagesHtml = '<div class="cr-review-photos">';
+          imagesArr.forEach(imgUrl => {
+            if (imgUrl) {
+              imagesHtml += `<img src="${imgUrl}" alt="Review photo" class="cr-review-photo">`;
+            }
+          });
+          imagesHtml += '</div>';
+        }
+
+        li.innerHTML = `
+          <div class="cr-review-inner">
+            <div class="cr-review-content">
+              <div class="cr-review-stars">${starsHtml}</div>
+              <div class="cr-reviewer">
+                <span class="cr-reviewer-name"><strong>${escapeHtml(rev.name)}</strong></span>
+                <span class="cr-verified">Verified Buyer</span>
+              </div>
+              ${rev.title ? `<div class="cr-review-title">${escapeHtml(rev.title)}</div>` : ''}
+              <div class="cr-review-body">${escapeHtml(rev.review)}</div>
+            </div>
+            <div class="cr-review-right">
+              <div class="cr-review-date">${rev.date}</div>
+              ${imagesHtml}
+            </div>
+          </div>
+        `;
+        serverReviewsList.prepend(li);
+      });
+    }
+
+    const totalReviewsCount = serverReviewsList ? serverReviewsList.querySelectorAll('.cr-review').length : 0;
+    updateAllRatingSummaries(totalReviewsCount);
+  }
+
+  /* ===== ADMIN MODERATION PANEL LOGIC ===== */
+  let activeAdminTab = 'pending';
+
+  function renderAdminPanel(currentTab = activeAdminTab) {
+    activeAdminTab = currentTab;
+    const allRevs = getLocalReviews();
+    
+    // Counter Badges
+    const pendingList = allRevs.filter(r => r.status === 'PENDING');
+    const approvedList = allRevs.filter(r => r.status === 'APPROVED');
+    const rejectedList = allRevs.filter(r => r.status === 'REJECTED');
+
+    const countPendingEl = document.getElementById('crCountPending');
+    const countApprovedEl = document.getElementById('crCountApproved');
+    const countRejectedEl = document.getElementById('crCountRejected');
+    const countAllEl = document.getElementById('crCountAll');
+
+    if (countPendingEl) countPendingEl.textContent = pendingList.length;
+    if (countApprovedEl) countApprovedEl.textContent = approvedList.length;
+    if (countRejectedEl) countRejectedEl.textContent = rejectedList.length;
+    if (countAllEl) countAllEl.textContent = allRevs.length;
+
+    // Filter Tab Buttons UI
+    document.querySelectorAll('#crAdminTabs .cr-admin-tab').forEach(btn => {
+      const isMatch = btn.dataset.tab === currentTab;
+      btn.style.background = isMatch ? (currentTab === 'pending' ? '#fef3c7' : (currentTab === 'approved' ? '#dcfce7' : (currentTab === 'rejected' ? '#fee2e2' : '#e0e7ff'))) : '#f3f4f6';
+      btn.style.color = isMatch ? (currentTab === 'pending' ? '#92400e' : (currentTab === 'approved' ? '#166534' : (currentTab === 'rejected' ? '#991b1b' : '#3730a3'))) : '#374151';
+      btn.style.fontWeight = isMatch ? '700' : '600';
+    });
+
+    let displayList = [];
+    if (currentTab === 'pending') displayList = pendingList;
+    else if (currentTab === 'approved') displayList = approvedList;
+    else if (currentTab === 'rejected') displayList = rejectedList;
+    else displayList = allRevs;
+
+    const listContainer = document.getElementById('crAdminList');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+
+    if (displayList.length === 0) {
+      listContainer.innerHTML = `<div style="text-align: center; padding: 3rem 1rem; color: #6b7280; font-size: 1.4rem;">No ${currentTab} reviews found for this product.</div>`;
+      return;
+    }
+
+    displayList.forEach(rev => {
+      const item = document.createElement('div');
+      item.style.cssText = 'background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);';
+
+      let statusBadge = '';
+      if (rev.status === 'PENDING') {
+        statusBadge = '<span style="background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 12px; font-size: 1.1rem; font-weight: 700;">⏳ PENDING APPROVAL</span>';
+      } else if (rev.status === 'APPROVED') {
+        statusBadge = '<span style="background: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 12px; font-size: 1.1rem; font-weight: 700;">✅ APPROVED</span>';
+      } else {
+        statusBadge = '<span style="background: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 12px; font-size: 1.1rem; font-weight: 700;">❌ REJECTED</span>';
+      }
+
+      let starsHtml = '';
+      for (let s = 1; s <= 5; s++) {
+        starsHtml += s <= rev.rating ? '<span style="color:#f5a623;">★</span>' : '<span style="color:#ccc;">★</span>';
+      }
+
+      let photosHtml = '';
+      if (rev.images && rev.images.length > 0) {
+        photosHtml = '<div style="display:flex; gap:6px; margin-top:8px;">';
+        rev.images.forEach(imgUrl => {
+          photosHtml += `<img src="${imgUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb;">`;
+        });
+        photosHtml += '</div>';
+      }
+
+      item.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; border-bottom:1px solid #f3f4f6; padding-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${statusBadge}
+            <span style="font-size:1.2rem; color:#6b7280;">ID: ${rev.id} • ${rev.date}</span>
+          </div>
+          <div style="font-size:1.4rem;">${starsHtml}</div>
+        </div>
+        <div>
+          <div style="font-weight:700; font-size:1.4rem; color:#111827;">${escapeHtml(rev.name)} <span style="font-weight:400; color:#6b7280; font-size:1.2rem;">(${escapeHtml(rev.email || 'No email')})</span></div>
+          ${rev.title ? `<div style="font-weight:600; font-size:1.3rem; margin-top:2px; color:#1f2937;">${escapeHtml(rev.title)}</div>` : ''}
+          <div style="font-size:1.3rem; color:#4b5563; margin-top:4px; line-height:1.4;">${escapeHtml(rev.review)}</div>
+          ${photosHtml}
+        </div>
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:4px; padding-top:8px; border-top:1px dashed #f3f4f6;">
+          ${rev.status !== 'APPROVED' ? `<button type="button" class="cr-adm-btn-approve" data-id="${rev.id}" style="background:#16a34a; color:#fff; border:none; padding:6px 14px; border-radius:6px; font-weight:700; font-size:1.2rem; cursor:pointer;">✅ Approve</button>` : ''}
+          ${rev.status !== 'REJECTED' ? `<button type="button" class="cr-adm-btn-reject" data-id="${rev.id}" style="background:#dc2626; color:#fff; border:none; padding:6px 14px; border-radius:6px; font-weight:700; font-size:1.2rem; cursor:pointer;">❌ Reject</button>` : ''}
+          <button type="button" class="cr-adm-btn-delete" data-id="${rev.id}" style="background:#6b7280; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-weight:600; font-size:1.2rem; cursor:pointer;">🗑️ Delete</button>
+        </div>
+      `;
+
+      // Action Handlers
+      const approveBtn = item.querySelector('.cr-adm-btn-approve');
+      if (approveBtn) {
+        approveBtn.addEventListener('click', () => {
+          updateReviewStatus(rev.id, 'APPROVED');
+        });
+      }
+
+      const rejectBtn = item.querySelector('.cr-adm-btn-reject');
+      if (rejectBtn) {
+        rejectBtn.addEventListener('click', () => {
+          updateReviewStatus(rev.id, 'REJECTED');
+        });
+      }
+
+      const deleteBtn = item.querySelector('.cr-adm-btn-delete');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+          deleteReview(rev.id);
+        });
+      }
+
+      listContainer.appendChild(item);
+    });
+  }
+
+  function updateReviewStatus(reviewId, newStatus) {
+    const reviews = getLocalReviews();
+    const target = reviews.find(r => r.id === reviewId);
+    if (target) {
+      target.status = newStatus;
+      saveAllLocalReviews(reviews);
+      renderAdminPanel(activeAdminTab);
+      renderDynamicReviews();
+    }
+  }
+
+  function deleteReview(reviewId) {
+    if (!confirm('Are you sure you want to delete this review?')) return;
+    let reviews = getLocalReviews();
+    reviews = reviews.filter(r => r.id !== reviewId);
+    saveAllLocalReviews(reviews);
+    renderAdminPanel(activeAdminTab);
+    renderDynamicReviews();
+  }
+
+  // Admin Overlay & Tabs Trigger Listeners
+  const adminPanelBtn = document.getElementById('crAdminPanelBtn');
+  const adminOverlay = document.getElementById('crAdminOverlay');
+  const adminCloseBtn = document.getElementById('crAdminModalClose');
+
+  if (adminPanelBtn) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('admin') === 'true' || urlParams.has('moderation') || urlParams.has('admin_mode')) {
+      adminPanelBtn.style.display = 'inline-flex';
+    }
+  }
+
+  if (adminPanelBtn && adminOverlay) {
+    adminPanelBtn.addEventListener('click', () => {
+      renderAdminPanel('pending');
+      openModal(adminOverlay);
+    });
+  }
+
+  if (adminCloseBtn && adminOverlay) {
+    adminCloseBtn.addEventListener('click', () => {
+      closeModal(adminOverlay);
+    });
+  }
+
+  if (adminOverlay) {
+    adminOverlay.addEventListener('click', (e) => {
+      if (e.target === adminOverlay) closeModal(adminOverlay);
+    });
+  }
+
+  document.querySelectorAll('#crAdminTabs .cr-admin-tab').forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+      renderAdminPanel(tabBtn.dataset.tab);
+    });
+  });
+
+  function updateAllRatingSummaries(count) {
+    const emptyState = document.getElementById('crEmptyState');
+    const sortWrap = document.getElementById('crSortWrap');
+    const barsWrap = document.getElementById('crBarsWrap');
+    const avgTextEl = document.getElementById('crAvgText');
+    const avgSubEl = document.getElementById('crAvgSub');
+
+    if (count <= 0) {
+      if (emptyState) emptyState.style.display = 'block';
+      if (sortWrap) sortWrap.style.display = 'none';
+      if (barsWrap) barsWrap.style.display = 'none';
+      if (avgTextEl) avgTextEl.textContent = 'No reviews yet';
+      if (avgSubEl) avgSubEl.textContent = 'Be the first to write a review!';
+      return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+    if (sortWrap) sortWrap.style.display = 'block';
+    if (barsWrap) barsWrap.style.display = 'block';
+
+    const reviewCards = document.querySelectorAll('#crServerReviews .cr-review');
+    let totalSum = 0;
+    const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+    reviewCards.forEach(card => {
+      const r = parseInt(card.dataset.rating || 5);
+      totalSum += r;
+      if (starCounts[r] !== undefined) starCounts[r]++;
+      else starCounts[5]++;
+    });
+
+    const avg = (totalSum / count).toFixed(1);
+    const avgRounded = Math.round(parseFloat(avg));
+
+    // Update Average Score text & subtext
+    if (avgTextEl) avgTextEl.textContent = `${avg} out of 5`;
+    if (avgSubEl) avgSubEl.textContent = `Based on ${count} review${count === 1 ? '' : 's'}`;
+
+    // Update stars in summary row
+    const avgStarsEl = document.querySelector('.cr-summary-left .cr-avg-stars');
+    if (avgStarsEl) {
+      let starsHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        starsHtml += i <= avgRounded ? '<span class="cr-star">★</span>' : '<span class="cr-star--empty">★</span>';
+      }
+      avgStarsEl.innerHTML = starsHtml;
+    }
+
+    // Update rating breakdown bars (5-star down to 1-star)
+    if (barsWrap) {
+      for (let star = 1; star <= 5; star++) {
+        const starCount = starCounts[star] || 0;
+        const pct = Math.round((starCount / count) * 100);
+        
+        const fillEl = barsWrap.querySelector(`.cr-bar-fill[data-star="${star}"]`);
+        const countEl = barsWrap.querySelector(`.cr-bar-count[data-star="${star}"]`);
+        
+        if (fillEl) fillEl.style.width = `${pct}%`;
+        if (countEl) countEl.textContent = starCount;
+      }
+    }
+
+    // Update product header title badge (e.g. "(3 reviews)" and filled stars)
+    updateHeaderBadge(count, avgRounded);
+  }
+
+  function updateHeaderBadge(count, avgRounded) {
+    if (count <= 0) return;
+
+    // Fast direct element updates without heavy TreeWalker DOM traversals
+    const pdpCountEl = document.querySelector('.pdp-rating-block__count, .product__inline-rating-count');
+    if (pdpCountEl) {
+      pdpCountEl.textContent = `(${count} review${count === 1 ? '' : 's'})`;
+    }
+
+    const pdpScoreEl = document.querySelector('.pdp-rating-block__score, .product__inline-rating-score');
+    if (pdpScoreEl) {
+      pdpScoreEl.textContent = avgRounded.toFixed(1);
+    }
+
+    // Set Dawn CSS Variables on rating blocks inside productInfo
+    const productInfo = document.querySelector('.product__info-container, .product-info');
+    if (productInfo) {
+      productInfo.querySelectorAll('.rating-star, .rating').forEach(el => {
+        el.style.setProperty('--rating', avgRounded);
+        el.style.setProperty('--rating-max', '5');
+        el.style.setProperty('--rating-decimal', '0');
+      });
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // Asynchronous non-blocking execution so main product content renders instantly
+  if (window.requestIdleCallback) {
+    requestIdleCallback(() => renderDynamicReviews());
+  } else {
+    setTimeout(renderDynamicReviews, 50);
+  }
+
+  /* ===== Form submit ===== */
+  const reviewForm = document.getElementById('crReviewForm');
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log('Submit button clicked, processing review form...');
+      const btn = document.getElementById('crSubmitBtn');
+      const msg = document.getElementById('crFormMsg');
+
+      if (!btn || !msg) {
+        console.error('Submit button or message element is missing in DOM.');
+        return;
+      }
+
+      if (selectedRating === 0) {
+        msg.style.color = '#c00';
+        msg.textContent = 'Please select a star rating.';
+        return;
+      }
+
+      const nameInput = document.getElementById('crName');
+      const emailInput = document.getElementById('crEmail');
+      const titleInput = document.getElementById('crTitle');
+      const bodyInput = document.getElementById('crBody');
+
+      // Manual Validation for better UX (preventing hidden HTML5 bubble validation failures)
+      if (nameInput && !nameInput.value.trim()) {
+        msg.style.color = '#c00';
+        msg.textContent = 'Please enter your name.';
+        nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        nameInput.focus();
+        return;
+      }
+
+      if (emailInput && !emailInput.value.trim()) {
+        msg.style.color = '#c00';
+        msg.textContent = 'Please enter your email.';
+        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        emailInput.focus();
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailInput && !emailRegex.test(emailInput.value.trim())) {
+        msg.style.color = '#c00';
+        msg.textContent = 'Please enter a valid email address.';
+        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        emailInput.focus();
+        return;
+      }
+
+      if (bodyInput && !bodyInput.value.trim()) {
+        msg.style.color = '#c00';
+        msg.textContent = 'Please write your review.';
+        bodyInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        bodyInput.focus();
+        return;
+      }
+
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      msg.textContent = '';
+
+      const nameVal = nameInput ? nameInput.value.trim() : '';
+      const emailVal = emailInput ? emailInput.value.trim() : '';
+      const titleVal = titleInput ? titleInput.value.trim() : '';
+      const bodyVal = bodyInput ? bodyInput.value.trim() : '';
+
+      try {
+        const payload = {
+          product_id: "{{ product.id }}",
+          product_title: "{{ product.title | escape }}",
+          product_handle: "{{ product.handle }}",
+          name: nameVal,
+          email: emailVal,
+          rating: selectedRating,
+          title: titleVal,
+          review: bodyVal,
+          images_count: uploadedFiles ? uploadedFiles.length : 0,
+          submitted_at: new Date().toISOString()
+        };
+
+        console.log('Sending review payload for admin approval:', payload);
+
+        // Fire-and-forget background dispatch (never blocks UI or throws CORS errors)
+        try {
+          if (navigator.sendBeacon) {
+            const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain' });
+            navigator.sendBeacon("https://hook.eu1.make.com/vn6a10vfarr6v466vu7sjbo5kqyfmf6s", blob);
+          } else {
+            fetch("https://hook.eu1.make.com/vn6a10vfarr6v466vu7sjbo5kqyfmf6s", {
+              method: "POST",
+              headers: { "Content-Type": "text/plain" },
+              body: JSON.stringify(payload),
+              mode: 'no-cors'
+            }).catch(err => console.log('Background review webhook note:', err));
+          }
+        } catch (fetchErr) {
+          console.log('Queued review dispatch:', fetchErr);
+        }
+
+        // Limit stored thumbnail images to max 2 small preview strings to prevent LocalStorage quota errors
+        const safeImages = (uploadedDataUrls || []).slice(0, 2);
+
+        const newReview = {
+          name: nameVal,
+          rating: selectedRating,
+          title: titleVal,
+          review: bodyVal,
+          images: safeImages,
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+        
+        saveLocalReview(newReview);
+        renderDynamicReviews();
+
+        msg.style.color = '#16a34a';
+        msg.textContent = '✨ Thank you! Your review has been submitted for admin approval.';
+        
+        if (reviewForm) reviewForm.reset();
+        selectedRating = 0;
+        stars.forEach(s => s.classList.remove('active'));
+        if (previewContainer) previewContainer.innerHTML = '';
+        uploadedFiles = [];
+        uploadedDataUrls = [];
+
+        setTimeout(() => {
+          if (overlay) {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+          }
+          msg.textContent = '';
+          btn.textContent = 'Submit Review';
+          btn.disabled = false;
+        }, 2000);
+
+      } catch (err) {
+        console.error('Error handling form submit:', err);
+        msg.style.color = '#c00';
+        msg.textContent = '❌ Error submitting review. Please try again.';
+        btn.textContent = 'Submit Review';
+        btn.disabled = false;
+      }
+    });
+  }
+
+  /* ===== Ask a question ===== */
+  const askBtn = document.getElementById('crAskQuestionBtn');
+  if (askBtn) {
+    askBtn.addEventListener('click', () => {
+      window.location.href = '/pages/contact';
+    });
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Customer Reviews",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_admin_button",
+      "label": "Show Admin Moderation Button on Storefront",
+      "default": false,
+      "info": "Keep unchecked to hide the moderation button from public customers. You can access admin moderation anytime by adding ?admin=true to the page URL."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Customer Reviews"
+    }
+  ]
+}
+{% endschema %}

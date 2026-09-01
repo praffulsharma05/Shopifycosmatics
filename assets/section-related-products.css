@@ -1,0 +1,109 @@
+.related-products,
+product-recommendations.related-products,
+.related-products.page-width,
+[class*="related-products-padding"] {
+  display: block;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.related-products__heading {
+  margin: 0.5rem 0 1.8rem !important;
+  padding: 0 1.5rem !important;
+}
+
+/* ================================================
+   MOBILE RESPONSIVE CARDS - 414x896 and similar
+   ================================================ */
+@media screen and (max-width: 749px) {
+
+  /* Section padding */
+  .related-products {
+    padding: 0 1.2rem !important;
+  }
+
+  .related-products__heading {
+    font-size: 1.6rem !important;
+    margin: 0.4rem 0 0.8rem !important;
+  }
+
+  /* Use the existing flex grid - force 2 items per row */
+  .related-products .grid,
+  .related-products .product-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+    row-gap: 1rem !important;
+    column-gap: 1rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .related-products .grid__item {
+    width: calc(50% - 0.5rem) !important;
+    max-width: calc(50% - 0.5rem) !important;
+    flex: 0 0 calc(50% - 0.5rem) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+}
+
+/* ================================================
+   TABLET RESPONSIVE (768px – 1024px including 820x1180)
+   ================================================ */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .related-products,
+  product-recommendations.related-products,
+  .related-products.page-width,
+  [class*="related-products-padding"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .related-products .grid,
+  .related-products .product-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .related-products .grid__item {
+    flex: 0 0 calc(50% - 8px) !important;
+    width: calc(50% - 8px) !important;
+    max-width: calc(50% - 8px) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+}
+
+/* ================================================
+   DESKTOP - keep previous card design but EQUAL SIZE
+   ================================================ */
+@media screen and (min-width: 1025px) {
+  .related-products .product-grid,
+  .related-products .grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+  }
+
+  .related-products .grid__item {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+  }
+}

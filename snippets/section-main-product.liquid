@@ -1,0 +1,462 @@
+<product-info
+  id="MainProduct-{{ section.id }}"
+  class="section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}"
+  data-section="{{ section.id }}"
+  data-product-id="{{ product.id }}"
+  data-update-url="true"
+  data-url="{{ product.url }}"
+  {% if section.settings.image_zoom == 'hover' %}
+    data-zoom-on-hover
+  {% endif %}
+>
+  {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+  {{ 'component-accordion.css' | asset_url | stylesheet_tag }}
+  {{ 'component-price.css' | asset_url | stylesheet_tag }}
+  {{ 'component-slider.css' | asset_url | stylesheet_tag }}
+  {{ 'component-rating.css' | asset_url | stylesheet_tag }}
+  {{ 'component-deferred-media.css' | asset_url | stylesheet_tag }}
+  {{ 'pdp-mobile-tablet.css' | asset_url | stylesheet_tag }}
+
+  {% unless product.has_only_default_variant %}
+    {{ 'component-product-variant-picker.css' | asset_url | stylesheet_tag }}
+    {{ 'component-swatch-input.css' | asset_url | stylesheet_tag }}
+    {{ 'component-swatch.css' | asset_url | stylesheet_tag }}
+  {% endunless %}
+  {%- if product.quantity_price_breaks_configured? -%}
+    {{ 'component-volume-pricing.css' | asset_url | stylesheet_tag }}
+  {%- endif -%}
+
+  {%- style -%}
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+      padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    }
+
+    @media screen and (min-width: 750px) {
+      .section-{{ section.id }}-padding {
+        padding-top: {{ section.settings.padding_top }}px;
+        padding-bottom: {{ section.settings.padding_bottom }}px;
+      }
+    }
+  {%- endstyle -%}
+
+  <script src="{{ 'product-info.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+  {%- if product.quantity_price_breaks_configured? -%}
+    <script src="{{ 'show-more.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'price-per-item.js' | asset_url }}" defer="defer"></script>
+  {%- endif -%}
+
+  {% if section.settings.image_zoom == 'hover' %}
+    <script id="EnableZoomOnHover-main" src="{{ 'magnify.js' | asset_url }}" defer="defer"></script>
+  {% endif %}
+  {%- if request.design_mode -%}
+    <script src="{{ 'theme-editor.js' | asset_url }}" defer="defer"></script>
+  {%- endif -%}
+
+  {%- assign first_3d_model = product.media | where: 'media_type', 'model' | first -%}
+  {%- if first_3d_model -%}
+    {{ 'component-product-model.css' | asset_url | stylesheet_tag }}
+    <link
+      id="ModelViewerStyle"
+      rel="stylesheet"
+      href="https://cdn.shopify.com/shopifycloud/model-viewer-ui/assets/v1.0/model-viewer-ui.css"
+      media="print"
+      onload="this.media='all'"
+    >
+    <link
+      id="ModelViewerOverride"
+      rel="stylesheet"
+      href="{{ 'component-model-viewer-ui.css' | asset_url }}"
+      media="print"
+      onload="this.media='all'"
+    >
+  {%- endif -%}
+
+  {% assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src' %}
+  <product-component view-event-payload="{{ product | standard_event_data: 'view', context: 'page' | escape }}">
+    <div class="page-width">
+      <div class="product product--{{ section.settings.media_size }} product--{{ section.settings.media_position }} product--{{ section.settings.gallery_layout }} product--mobile-{{ section.settings.mobile_thumbnails }} grid grid--1-col {% if product.media.size > 0 %}grid--2-col-tablet{% else %}product--no-media{% endif %}">
+        <div class="grid__item product__media-wrapper">
+          {% render 'product-media-gallery', variant_images: variant_images %}
+        </div>
+        <div class="product__info-wrapper grid__item{% if settings.page_width > 1400 and section.settings.media_size == "small" %} product__info-wrapper--extra-padding{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+          <section
+            id="ProductInfo-{{ section.id }}"
+            class="product__info-container{% if section.settings.enable_sticky_info %} product__column-sticky{% endif %}"
+          >
+            {%- assign product_form_id = 'product-form-' | append: section.id -%}
+
+            {% render 'section-main-product-blocks',
+              section: section,
+              product: product,
+              product_form_id: product_form_id,
+              routes: routes,
+              recommendations: recommendations,
+              settings: settings,
+              cart: cart
+            %}
+            <a href="{{ product.url }}" class="link product__view-details animate-arrow">
+              {{ 'products.product.view_full_details' | t }}
+              {{- 'icon-arrow.svg' | inline_asset_content -}}
+            </a>
+          </section>
+        </div>
+      </div>
+
+      {% render 'product-media-modal', variant_images: variant_images %}
+
+      {% assign popups = section.blocks | where: 'type', 'popup' %}
+      {%- for block in popups -%}
+        <modal-dialog id="PopupModal-{{ block.id }}" class="product-popup-modal" {{ block.shopify_attributes }}>
+          <div
+            role="dialog"
+            aria-label="{{ block.settings.text }}"
+            aria-modal="true"
+            class="product-popup-modal__content"
+            tabindex="-1"
+          >
+            <button
+              id="ModalClose-{{ block.id }}"
+              type="button"
+              class="product-popup-modal__toggle"
+              aria-label="{{ 'accessibility.close' | t }}"
+            >
+              {{- 'icon-close.svg' | inline_asset_content -}}
+            </button>
+            <div class="product-popup-modal__content-info">
+              <h1 class="h2">{{ block.settings.page.title | escape }}</h1>
+              {{ block.settings.page.content }}
+            </div>
+          </div>
+        </modal-dialog>
+      {%- endfor -%}
+
+      {%- if product.media.size > 0 -%}
+        <script src="{{ 'product-modal.js' | asset_url }}" defer="defer"></script>
+        <script src="{{ 'media-gallery.js' | asset_url }}" defer="defer"></script>
+      {%- endif -%}
+
+      {%- if first_3d_model -%}
+        <script type="application/json" id="ProductJSON-{{ product.id }}">
+          {{ product.media | where: 'media_type', 'model' | json }}
+        </script>
+        <script src="{{ 'product-model.js' | asset_url }}" defer></script>
+      {%- endif -%}
+
+      {%- liquid
+        if product.selected_or_first_available_variant.featured_media
+          assign seo_media = product.selected_or_first_available_variant.featured_media
+        else
+          assign seo_media = product.featured_media
+        endif
+      -%}
+
+      <script type="application/ld+json">
+        {{ product | structured_data }}
+      </script>
+    </div>
+  </product-component>
+
+  <style>
+    @media screen and (min-width: 1025px) {
+      /* Product Section Background Accent & Layout */
+      #MainProduct-{{ section.id }},
+      .section-{{ section.id }}-padding {
+        background-color: #faf9fb !important;
+        background: #faf9fb !important;
+        display: block !important;
+        padding-top: 5rem !important;
+        padding-bottom: 5rem !important;
+      }
+
+      /* Full Width Screen Coverage on Desktop */
+      #MainProduct-{{ section.id }} .page-width,
+      .section-{{ section.id }}-padding .page-width {
+        max-width: 100% !important;
+        padding-left: 6rem !important;
+        padding-right: 6rem !important;
+      }
+
+      /* Make details column wider and media gallery column narrower */
+      #MainProduct-{{ section.id }} .product__media-wrapper {
+        max-width: 45% !important;
+        width: calc(45% - var(--grid-desktop-horizontal-spacing, 40px) / 2) !important;
+      }
+      #MainProduct-{{ section.id }} .product__info-wrapper {
+        max-width: 55% !important;
+        width: calc(55% - var(--grid-desktop-horizontal-spacing, 40px) / 2) !important;
+        padding-left: 0 !important;
+      }
+
+      /* Product Info Container as a floating glassmorphism card */
+      .product__info-container {
+        background: #ffffff !important;
+        border: 1px solid rgba(155, 4, 111, 0.08) !important;
+        border-radius: 20px !important;
+        padding: 3.5rem !important;
+        box-shadow: 0 20px 40px rgba(46, 42, 57, 0.06), 0 5px 15px rgba(0, 0, 0, 0.02) !important;
+        max-width: none !important;
+        width: 100% !important;
+      }
+
+      /* Stretch Form Elements to Full Card Column Width */
+      .product-form__input,
+      .product-form__buttons,
+      .recipient-form,
+      .price-per-item__container {
+        max-width: 100% !important;
+      }
+
+      /* Vendor Badge Style */
+      .product__text.caption-with-letter-spacing {
+        display: inline-flex !important;
+        background: rgba(155, 4, 111, 0.08) !important;
+        color: #9b046f !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        padding: 0.5rem 1.4rem !important;
+        border-radius: 50px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.12em !important;
+        margin-bottom: 2rem !important;
+        margin-top: 0 !important;
+        border: 1px solid rgba(155, 4, 111, 0.15) !important;
+      }
+
+      /* Title Typography */
+      .product__title h1 {
+        font-size: 3.4rem !important;
+        font-weight: 800 !important;
+        color: #1c1625 !important;
+        line-height: 1.25 !important;
+        letter-spacing: -0.02em !important;
+        margin-bottom: 1.8rem !important;
+      }
+
+      /* Price styling */
+      .price {
+        margin-bottom: 1.8rem !important;
+      }
+      .price .price-item--regular,
+      .price .price-item--sale {
+        font-size: 2.8rem !important;
+        font-weight: 700 !important;
+        color: #9b046f !important;
+        letter-spacing: -0.01em !important;
+      }
+      .price .price-item--compare {
+        font-size: 1.8rem !important;
+        color: #777180 !important;
+        text-decoration: line-through !important;
+        margin-left: 0.8rem !important;
+      }
+      .price .badge.price__badge-sale {
+        background-color: #9b046f !important;
+        color: #ffffff !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+        padding: 0.4rem 1rem !important;
+        border-radius: 6px !important;
+        margin-left: 1rem !important;
+        border: none !important;
+        vertical-align: middle !important;
+      }
+
+      /* Variant Picker Pills equal columns card grid */
+      .product-form__input--pill {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+        gap: 1.2rem !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 0 1.6rem 0 !important;
+        max-width: 100% !important;
+      }
+
+      .product-form__input--pill legend {
+        grid-column: 1 / -1 !important;
+        margin-bottom: 0.8rem !important;
+      }
+
+      .product-form__input--pill input[type='radio'] + label {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 1.2rem 1.5rem !important;
+        min-height: 85px !important;
+        box-sizing: border-box !important;
+      }
+
+      .product-form__input--pill input[type='radio']:checked + label {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #00adb5 !important;
+        box-shadow: 0 0 0 1px #00adb5 !important;
+      }
+
+      /* Quantity Box refinement */
+      .quantity {
+        border-radius: 10px !important;
+        border: 1px solid rgba(46, 42, 57, 0.15) !important;
+        background: #ffffff !important;
+      }
+      .quantity__input {
+        font-weight: 700 !important;
+        font-size: 1.5rem !important;
+      }
+
+      /* Buy Buttons Redesign */
+      .product-form__buttons-row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 12px !important;
+        width: 100% !important;
+        align-items: center !important;
+      }
+
+      .product-form__submit {
+        flex: 1 1 0% !important;
+        width: 100% !important;
+        background: linear-gradient(135deg, #9b046f 0%, #7a0358 100%) !important;
+        color: #ffffff !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        font-size: 1.6rem !important;
+        letter-spacing: 0.05em !important;
+        padding: 1.5rem 3rem !important;
+        min-height: 5.2rem !important;
+        height: 5.2rem !important;
+        border: none !important;
+        transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.2s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+      }
+      .product-form__submit:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(155, 4, 111, 0.25) !important;
+        background: linear-gradient(135deg, #a80579 0%, #850360 100%) !important;
+      }
+      .product-form__submit:active {
+        transform: translateY(0) !important;
+      }
+
+      /* PDP Wishlist Heart Button alignment next to Add to Cart */
+      .button-wishlist-pdp-inline {
+        position: static !important;
+        flex: 0 0 5.2rem !important;
+        width: 5.2rem !important;
+        height: 5.2rem !important;
+        min-width: 5.2rem !important;
+        max-width: 5.2rem !important;
+        border-radius: 12px !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        border: 1.5px solid #d0cbd6 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), border-color 0.2s ease, background 0.2s ease !important;
+        box-sizing: border-box !important;
+      }
+      .button-wishlist-pdp-inline:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
+        border-color: #9b046f !important;
+        background: #fdf6fa !important;
+      }
+      .button-wishlist-pdp-inline:active {
+        transform: translateY(0) !important;
+      }
+      .button-wishlist-pdp-inline svg {
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        stroke: #2e2a39 !important;
+        stroke-width: 1.8 !important;
+        fill: none !important;
+      }
+      .button-wishlist-pdp-inline.active {
+        background: #ff4d4f !important;
+        border-color: #ff4d4f !important;
+      }
+      .button-wishlist-pdp-inline.active svg {
+        fill: #ffffff !important;
+        stroke: #ffffff !important;
+      }
+
+      .shopify-payment-button__button {
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        font-size: 1.6rem !important;
+        letter-spacing: 0.05em !important;
+        padding: 1.5rem 3rem !important;
+        min-height: 5.2rem !important;
+        transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.2s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+      }
+      .shopify-payment-button__button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12) !important;
+      }
+      .shopify-payment-button__button:active {
+        transform: translateY(0) !important;
+      }
+
+      /* Offers Box Refinement */
+      .offers-for-you-container {
+        background-color: rgba(241, 237, 254, 0.5) !important;
+        border: 1px solid rgba(91, 54, 178, 0.12) !important;
+        border-radius: 14px !important;
+        padding: 2rem !important;
+      }
+      .offers-for-you__card {
+        border: 1px solid rgba(46, 42, 57, 0.06) !important;
+        box-shadow: 0 4px 12px rgba(46, 42, 57, 0.02) !important;
+      }
+    }
+
+    @media screen and (max-width: 1024px) {
+      /* Base container resets for mobile & tablet */
+      .product.grid {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      .product__media-wrapper,
+      .product__info-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
+
+    /* Rating Block - Base styles (all breakpoints) */
+    .pdp-rating-block {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 8px 0 12px;
+      padding: 0;
+    }
+
+    .pdp-rating-block__stars {
+      display: flex;
+      gap: 1px;
+      font-size: 1.4rem;
+    }
+
+    .pdp-rating-block__score {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #111111;
+    }
+
+    .pdp-rating-block__count {
+      font-size: 1.3rem;
+      color: #666666;
+    }
+  </style>
+  {% render 'sticky-mobile-buy-bar', product: product, section: section %}
+</product-info>

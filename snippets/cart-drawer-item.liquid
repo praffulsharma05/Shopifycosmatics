@@ -1,0 +1,198 @@
+{% comment %}
+  Renders a single cart line item row in the cart drawer table.
+  Accepts:
+  - item: {Object} Cart Line Item object
+  - cart: {Object} Cart object
+  - settings: {Object} Global settings object (optional)
+  - routes: {Object} Routes object
+  - forloop: {Object} Loop iteration status
+{% endcomment %}
+<tr
+  id="CartDrawer-Item-{{ item.index | plus: 1 }}"
+  class="cart-item{% if item.parent_relationship.parent != null %} cart-item__nested-line{% endif %}"
+  role="row"
+  {% if item.parent_relationship.parent != null %}
+    aria-label="{{- 'products.product.nested_label' | t: title: item.product.title, parent_title: item.parent_relationship.parent.title | escape -}}"
+  {% endif %}
+>
+  <td
+    class="cart-item__media"
+    role="cell"
+    headers="CartDrawer-ColumnProductImage"
+  >
+    {% if item.image %}
+      {% comment %} Leave empty space due to a:empty CSS display: none rule {% endcomment %}
+      <a href="{{ item.url }}" class="cart-item__link" tabindex="-1" aria-hidden="true"> </a>
+      <img
+        class="cart-item__image"
+        src="{{ item.image | image_url: width: 300 }}"
+        alt="{{ item.image.alt | escape }}"
+        loading="lazy"
+        width="150"
+        height="{{ 150 | divided_by: item.image.aspect_ratio | ceil }}"
+      >
+    {% endif %}
+  </td>
+
+  <td class="cart-item__details" role="cell" headers="CartDrawer-ColumnProduct">
+    {%- if settings.show_vendor -%}
+      <p class="caption-with-letter-spacing light">{{ item.product.vendor }}</p>
+    {%- endif -%}
+
+    <div class="cart-item__title">
+      <a href="{{ item.url }}" class="cart-item__name h4 break">
+        {{- item.product.title | escape -}}
+      </a>
+      {%- assign cart_disclosure_modal_id = 'CartDisclosureModal-drawer-' | append: item.key | replace: ':', '-' -%}
+      {%- render 'cart-disclosure-indicator',
+        product: item.product,
+        modal_id: cart_disclosure_modal_id
+      -%}
+    </div>
+
+    {% liquid
+      assign item_rating = item.product.metafields.reviews.rating.value.rating | default: 0
+      assign item_rating_count = item.product.metafields.reviews.rating_count.value | default: item.product.metafields.reviews.rating_count | default: 12
+    %}
+    <div class="cart-item__rating-pill" aria-label="{{ item_rating }} out of 5 stars">
+      <span class="cart-item__rating-star-icon">★</span>
+      <span class="cart-item__rating-val">{{ item_rating | round: 2 }}</span>
+      <span class="cart-item__rating-divider">•</span>
+      <span class="cart-item__rating-reviews">{{ item_rating_count }} reviews</span>
+    </div>
+
+    {%- if item.original_price != item.final_price -%}
+      <div class="cart-item__discounted-prices">
+        <span class="visually-hidden">
+          {{ 'products.product.price.regular_price' | t }}
+        </span>
+        <s class="cart-item__old-price product-option">
+          {{- item.original_price | money -}}
+        </s>
+        <span class="visually-hidden">
+          {{ 'products.product.price.sale_price' | t }}
+        </span>
+        <strong class="cart-item__final-price product-option">
+          {{ item.final_price | money }}
+        </strong>
+      </div>
+    {%- else -%}
+      <div class="product-option">
+        {{ item.original_price | money }}
+      </div>
+    {%- endif -%}
+
+    {%- if item.product.has_only_default_variant == false
+      or item.properties.size != 0
+      or item.selling_plan_allocation != null
+    -%}
+      <dl>
+        {%- if item.product.has_only_default_variant == false -%}
+          {%- for option in item.options_with_values -%}
+            <div class="product-option">
+              <dt>{{ option.name }}:</dt>
+              <dd>
+                {{ option.value -}}
+                {%- unless forloop.last %}, {% endunless %}
+              </dd>
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+
+        {%- for property in item.properties -%}
+          {%- assign property_first_char = property.first | slice: 0 -%}
+          {%- if property.last != blank and property_first_char != '_' -%}
+            <div class="product-option">
+              <dt>{{ property.first }}:</dt>
+              <dd>
+                {%- if property.last contains '/uploads/' -%}
+                  <a
+                    href="{{ property.last }}"
+                    class="link"
+                    target="_blank"
+                    aria-describedby="a11y-new-window-message"
+                  >
+                    {{ property.last | split: '/' | last }}
+                  </a>
+                {%- else -%}
+                  {{ property.last }}
+                {%- endif -%}
+              </dd>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </dl>
+
+      <p class="product-option">{{ item.selling_plan_allocation.selling_plan.name }}</p>
+    {%- endif -%}
+
+    <ul
+      class="discounts list-unstyled"
+      role="list"
+      aria-label="{{ 'customer.order.discount' | t }}"
+    >
+      {%- for discount in item.line_level_discount_allocations -%}
+        <li class="discounts__discount">
+          {{- 'icon-discount.svg' | inline_asset_content -}}
+          {{ discount.discount_application.title }}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </td>
+
+  <td class="cart-item__totals right" role="cell" headers="CartDrawer-ColumnTotal">
+    {%- render 'loading-spinner' -%}
+    <div class="cart-item__price-wrapper">
+      {%- if item.original_line_price != item.final_line_price -%}
+        <div class="cart-item__discounted-prices">
+          <span class="visually-hidden">
+            {{ 'products.product.price.regular_price' | t }}
+          </span>
+          <s class="cart-item__old-price price price--end">
+            {{ item.original_line_price | money }}
+          </s>
+          <span class="visually-hidden">
+            {{ 'products.product.price.sale_price' | t }}
+          </span>
+          <span class="price price--end">
+            {{ item.final_line_price | money }}
+          </span>
+        </div>
+      {%- else -%}
+        <span class="price price--end">
+          {{ item.original_line_price | money }}
+        </span>
+      {%- endif -%}
+
+      {%- if item.variant.available and item.unit_price_measurement -%}
+        {% render 'unit-price',
+          price: item.unit_price,
+          measurement: item.unit_price_measurement
+        %}
+      {%- endif -%}
+    </div>
+  </td>
+  {%- liquid
+    assign has_qty_rules = false
+    if item.variant.quantity_rule.increment > 1 or item.variant.quantity_rule.min > 1 or item.variant.quantity_rule.max != null
+      assign has_qty_rules = true
+    endif
+
+    assign has_vol_pricing = false
+    if item.variant.quantity_price_breaks.size > 0
+      assign has_vol_pricing = true
+    endif
+  -%}
+  <td
+    class="cart-item__quantity {% if has_qty_rules or has_vol_pricing %} cart-item__quantity--info{% endif %}"
+    role="cell"
+    headers="CartDrawer-ColumnQuantity"
+  >
+    {% render 'cart-drawer-quantity',
+      item: item,
+      cart: cart,
+      has_qty_rules: has_qty_rules,
+      has_vol_pricing: has_vol_pricing
+    %}
+  </td>
+</tr>

@@ -1,0 +1,280 @@
+{% comment %} <div id="CustomTypewriterSearchModal" class="typewriter-search-modal" aria-modal="false" role="dialog" aria-label="Search">
+  <div class="typewriter-search-modal__content">
+    <div class="page-width">
+      <div class="k-search-container">
+        
+        <form id="predictive-search-form" action="/search" method="GET" aria-owns="header-predictive-search" class="header-search__form" role="search">
+          <div class="header-search__form-control">
+            <span class="search-icon-wrapper">
+              <svg aria-hidden="true" fill="none" focusable="false" width="20" class="icon icon-search" viewBox="0 0 24 24">
+                <path d="M10.364 3a7.364 7.364 0 1 0 0 14.727 7.364 7.364 0 0 0 0-14.727Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"></path>
+                <path d="M15.857 15.858 21 21.001" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"></path>
+              </svg>
+            </span>
+
+            <input 
+              type="search" 
+              name="q" 
+              spellcheck="false" 
+              class="dropbutton header-search__input text-body" 
+              aria-label="Search" 
+              id="typewriter-placeholder" 
+              placeholder=""
+              autocomplete="off"
+            >
+
+            <!-- Search Clear Text Button (Kept) -->
+            <button type="button" class="search-clear-btn" id="clear-search-input" aria-label="Clear text">
+              <svg aria-hidden="true" focusable="false" fill="none" width="14" class="icon icon-close" viewBox="0 0 16 16">
+                <path d="m1 1 14 14M1 15 15 1" stroke="currentColor" stroke-width="1.5"></path>
+              </svg>
+            </button>
+          </div>
+        </form>
+
+      </div>
+      
+      <!-- Predictive Results Container -->
+      <predictive-search id="header-predictive-search" class="predictive-search">
+        <div class="predictive-search__content" slot="results"></div>
+      </predictive-search>
+      
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Hide the browser's default built-in search clear button */
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none !important;
+  }
+  /* Native Sense Search Hider */
+  .header__search search-modal,
+  .search-modal,
+  details[id^="Details-HeaderSearch"] .search-modal,
+  .header__inline-menu + .search-modal {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* Target and hide the theme's native cross close icon inside the header toggle button */
+  .header__search .icon-close,
+  details[id^="Details-HeaderSearch"] summary .icon-close,
+  .search-modal__toggle .icon-close {
+    display: none !important;
+  }
+
+  /* Drop down from beneath the header instead of covering it */
+  .typewriter-search-modal {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 4;
+    display: none;
+    flex-direction: column;
+  }
+  
+  .typewriter-search-modal.is-open {
+    display: flex;
+  }
+  
+  /* Full-width container styling */
+  .typewriter-search-modal__content {
+    position: relative;
+    width: 100%;
+    background: rgb(var(--color-background));
+    border-bottom: 1px solid rgba(var(--color-foreground), 0.08);
+    padding: 1.5rem 0;
+    animation: slideDownFull 0.2s ease-out forwards;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.05);
+  }
+  
+  @keyframes slideDownFull {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .k-search-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .header-search__form {
+    flex-grow: 1;
+    margin: 0;
+  }
+
+  .header-search__form-control {
+    display: flex;
+    align-items: center;
+    position: relative;
+    border: var(--inputs-border-width) solid rgba(var(--color-foreground), var(--inputs-border-opacity));
+    border-radius: var(--inputs-radius);
+    background-color: rgb(var(--color-background));
+  }
+  
+  .search-icon-wrapper {
+    display: flex;
+    align-items: center;
+    padding-left: 1.5rem;
+    color: rgba(var(--color-foreground), 0.6);
+  }
+  
+  .header-search__input {
+    width: 100%;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    padding: 1.2rem 4rem 1.2rem 1rem !important;
+    height: 4.5rem;
+    box-shadow: none !important;
+  }
+  
+  .search-clear-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(var(--color-foreground), 0.6);
+    padding: 0;
+  }
+
+  .predictive-search {
+    margin-top: 1rem;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+</style>
+
+<script>
+function initTypewriterSearch() {
+  const words = ["body care...", "skincare routines...", "luxury bath sets...", "Bridgerton collection...", "fragrances..."];
+  let i = 0;
+  let timer;
+  const inputEl = document.getElementById("typewriter-placeholder");
+  const clearBtn = document.getElementById("clear-search-input");
+  const modal = document.getElementById("CustomTypewriterSearchModal");
+
+  if (!inputEl || !modal) return; 
+
+  // Inject this section into the theme's main <header> element
+  const headerStickyWrapper = document.querySelector('.header-wrapper, #shopify-section-header, header');
+  if (headerStickyWrapper && modal.parentElement !== headerStickyWrapper) {
+    headerStickyWrapper.appendChild(modal);
+    headerStickyWrapper.style.position = 'relative';
+  }
+
+  function typingEffect() {
+    if(!modal.classList.contains('is-open')) {
+       timer = setTimeout(typingEffect, 500);
+       return;
+    }
+    let word = "Search for " + words[i];
+    let letters = word.split("");
+    inputEl.placeholder = "";
+    
+    function loopTyping() {
+      if (letters.length > 0 && modal.classList.contains('is-open')) {
+        inputEl.placeholder += letters.shift();
+        timer = setTimeout(loopTyping, 100);
+      } else {
+        setTimeout(deletingEffect, 2000);
+      }
+    }
+    loopTyping();
+  }
+
+  function deletingEffect() {
+    if(!modal.classList.contains('is-open')) return;
+    let word = "Search for " + words[i];
+    let letters = word.split("");
+    
+    function loopDeleting() {
+      if (letters.length > 0 && modal.classList.contains('is-open')) {
+        letters.pop();
+        inputEl.placeholder = letters.join("");
+        timer = setTimeout(loopDeleting, 50);
+      } else {
+        i = (i + 1) % words.length;
+        setTimeout(typingEffect, 500);
+      }
+    }
+    loopDeleting();
+  }
+
+  function toggleModal(e) {
+    if(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    if (modal.classList.contains("is-open")) {
+      modal.classList.remove("is-open");
+      inputEl.value = "";
+      inputEl.placeholder = "";
+    } else {
+      modal.classList.add("is-open");
+      setTimeout(() => { inputEl.focus(); }, 100);
+      clearTimeout(timer);
+      typingEffect();
+    }
+  }
+
+  // Intercept Sense Theme's Header Search Icons and turn them into toggles
+  const nativeSearchTriggers = document.querySelectorAll('.header__search, .search-modal__toggle, details[id^="Details-HeaderSearch"] summary');
+  
+  nativeSearchTriggers.forEach(trigger => {
+    const oldChange = trigger.cloneNode(true);
+    trigger.parentNode.replaceChild(oldChange, trigger);
+    
+    oldChange.addEventListener('click', function(e) {
+      toggleModal(e);
+    });
+  });
+
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape" && modal.classList.contains("is-open")) {
+      modal.classList.remove("is-open");
+    }
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", function() {
+      inputEl.value = "";
+      inputEl.focus();
+    });
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTypewriterSearch);
+} else {
+  initTypewriterSearch();
+}
+document.addEventListener('shopify:section:load', initTypewriterSearch);
+</script>
+
+{% schema %}
+{
+  "name": "Typewriter Search Bar",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Typewriter Search Bar"
+    }
+  ]
+}
+{% endschema %} {% endcomment %}

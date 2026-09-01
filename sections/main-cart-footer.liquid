@@ -1,0 +1,328 @@
+{{ 'component-cart.css' | asset_url | stylesheet_tag }}
+{{ 'component-totals.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'component-discounts.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.5 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.5 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+      padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div
+  class="gradient color-{{ section.settings.color_scheme }}{% if cart == empty %} is-empty{% endif %}"
+  id="main-cart-footer"
+  data-id="{{ section.id }}"
+>
+  <div class="page-width">
+    <div class="cart__footer isolate section-{{ section.id }}-padding">
+      {%- if settings.show_cart_note -%}
+        <cart-note class="cart__note field">
+          <label for="Cart-note">{{ 'sections.cart.note' | t }}</label>
+          <textarea
+            class="text-area field__input"
+            name="note"
+            form="cart"
+            id="Cart-note"
+            placeholder="{{ 'sections.cart.note' | t }}"
+          >{{ cart.note }}</textarea>
+        </cart-note>
+      {%- endif -%}
+
+      <div class="cart__blocks">
+        {% for block in section.blocks %}
+          {%- case block.type -%}
+            {%- when '@app' -%}
+              {% render block %}
+            {%- when 'subtotal' -%}
+              <div class="js-contents" {{ block.shopify_attributes }}>
+                <div>
+                  {%- if cart.cart_level_discount_applications.size > 0 -%}
+                    <ul class="discounts list-unstyled" role="list" aria-label="{{ 'customer.order.discount' | t }}">
+                      {%- for discount in cart.cart_level_discount_applications -%}
+                        <li class="discounts__discount discounts__discount--position">
+                          {{- 'icon-discount.svg' | inline_asset_content -}}
+                          {{ discount.title | escape }}
+                          (-{{ discount.total_allocated_amount | money }})
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                  {%- endif -%}
+                </div>
+
+                <div class="totals">
+                  <h2 class="totals__total">{{ 'sections.cart.estimated_total' | t }}</h2>
+                  <p class="totals__total-value">{{ cart.total_price | money_with_currency }}</p>
+                </div>
+
+                <small class="tax-note caption-large rte">
+                  {%- if cart.duties_included and cart.taxes_included -%}
+                    {%- if shop.shipping_policy.body == blank -%}
+                      {{ 'sections.cart.duties_and_taxes_included_shipping_at_checkout_without_policy' | t }}
+                    {%- else -%}
+                      {{
+                        'sections.cart.duties_and_taxes_included_shipping_at_checkout_with_policy_html'
+                        | t: link: shop.shipping_policy.url
+                      }}
+                    {%- endif -%}
+                  {%- elsif cart.duties_included == false and cart.taxes_included -%}
+                    {%- if shop.shipping_policy.body == blank -%}
+                      {{ 'sections.cart.taxes_included_shipping_at_checkout_without_policy' | t }}
+                    {%- else -%}
+                      {{
+                        'sections.cart.taxes_included_shipping_at_checkout_with_policy_html'
+                        | t: link: shop.shipping_policy.url
+                      }}
+                    {%- endif -%}
+                  {%- elsif cart.duties_included and cart.taxes_included == false -%}
+                    {%- if shop.shipping_policy.body == blank -%}
+                      {{ 'sections.cart.duties_included_taxes_at_checkout_shipping_at_checkout_without_policy' | t }}
+                    {%- else -%}
+                      {{
+                        'sections.cart.duties_included_taxes_at_checkout_shipping_at_checkout_with_policy_html'
+                        | t: link: shop.shipping_policy.url
+                      }}
+                    {%- endif -%}
+                  {%- elsif cart.duties_included == false and cart.taxes_included == false -%}
+                    {%- if shop.shipping_policy.body == blank -%}
+                      {{ 'sections.cart.taxes_at_checkout_shipping_at_checkout_without_policy' | t }}
+                    {%- else -%}
+                      {{
+                        'sections.cart.taxes_at_checkout_shipping_at_checkout_with_policy_html'
+                        | t: link: shop.shipping_policy.url
+                      }}
+                    {%- endif -%}
+                  {%- endif -%}
+                </small>
+              </div>
+            {%- else -%}
+              <div class="cart__ctas" {{ block.shopify_attributes }}>
+                <button
+                  type="submit"
+                  id="checkout"
+                  class="cart__checkout-button button"
+                  name="checkout"
+                  {% if cart == empty %}
+                    disabled
+                  {% endif %}
+                  form="cart"
+                >
+                  {{ 'sections.cart.checkout' | t }}
+                </button>
+              </div>
+
+              {%- if additional_checkout_buttons -%}
+                <div class="cart__dynamic-checkout-buttons additional-checkout-buttons">
+                  {{ content_for_additional_checkout_buttons }}
+                </div>
+              {%- endif -%}
+          {%- endcase -%}
+        {% endfor %}
+
+        <div id="cart-errors"></div>
+      </div>
+    </div>
+
+    {%- if cart != empty -%}
+      {%- comment -%} Concept-based Upsell/Cross-sell product selector {%- endcomment -%}
+      {%- assign cart_product_ids = '' -%}
+      {%- for item in cart.items -%}
+        {%- assign cart_product_ids = cart_product_ids | append: item.product.id | append: ',' -%}
+      {%- endfor -%}
+
+      {%- assign first_item = cart.items.first -%}
+      {%- assign first_product = first_item.product -%}
+      {%- assign first_product_price = first_product.price -%}
+
+      {%- assign item_category = 'skincare' -%}
+      {%- for c in first_product.collections -%}
+        {%- if c.handle == 'skincare' or c.handle == 'lipsticks' or c.handle == 'foundation' -%}
+          {%- assign item_category = c.handle -%}
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- assign upsell_collection = nil -%}
+      {%- assign cross_sell_collection_1 = nil -%}
+      {%- assign cross_sell_collection_2 = nil -%}
+
+      {%- if item_category == 'lipsticks' -%}
+        {%- assign upsell_collection = collections['lipsticks'] -%}
+        {%- assign cross_sell_collection_1 = collections['skincare'] -%}
+        {%- assign cross_sell_collection_2 = collections['foundation'] -%}
+      {%- elsif item_category == 'skincare' -%}
+        {%- assign upsell_collection = collections['skincare'] -%}
+        {%- assign cross_sell_collection_1 = collections['lipsticks'] -%}
+        {%- assign cross_sell_collection_2 = collections['foundation'] -%}
+      {%- else -%}
+        {%- assign upsell_collection = collections['foundation'] -%}
+        {%- assign cross_sell_collection_1 = collections['skincare'] -%}
+        {%- assign cross_sell_collection_2 = collections['lipsticks'] -%}
+      {%- endif -%}
+
+      {%- assign upsell_product = nil -%}
+      {%- if upsell_collection != blank -%}
+        {%- for prod in upsell_collection.products -%}
+          {%- assign prod_id_str = prod.id | append: '' -%}
+          {%- unless cart_product_ids contains prod_id_str -%}
+            {%- if prod.price > first_product_price -%}
+              {%- assign upsell_product = prod -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endunless -%}
+        {%- endfor -%}
+
+        {%- if upsell_product == blank -%}
+          {%- for prod in upsell_collection.products -%}
+            {%- assign prod_id_str = prod.id | append: '' -%}
+            {%- unless cart_product_ids contains prod_id_str -%}
+              {%- assign upsell_product = prod -%}
+              {%- break -%}
+            {%- endunless -%}
+          {%- endfor -%}
+        {%- endif -%}
+
+        {%- if upsell_product != blank -%}
+          {%- assign upsell_id_str = upsell_product.id | append: '' -%}
+          {%- assign cart_product_ids = cart_product_ids | append: upsell_id_str | append: ',' -%}
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- assign cross_sell_1 = nil -%}
+      {%- assign cross_sell_2 = nil -%}
+
+      {%- if cross_sell_collection_1 != blank -%}
+        {%- for prod in cross_sell_collection_1.products -%}
+          {%- assign prod_id_str = prod.id | append: '' -%}
+          {%- unless cart_product_ids contains prod_id_str -%}
+            {%- assign cross_sell_1 = prod -%}
+            {%- assign cart_product_ids = cart_product_ids | append: prod_id_str | append: ',' -%}
+            {%- break -%}
+          {%- endunless -%}
+        {%- endfor -%}
+      {%- endif -%}
+
+      {%- if cross_sell_collection_2 != blank -%}
+        {%- for prod in cross_sell_collection_2.products -%}
+          {%- assign prod_id_str = prod.id | append: '' -%}
+          {%- unless cart_product_ids contains prod_id_str -%}
+            {%- assign cross_sell_2 = prod -%}
+            {%- assign cart_product_ids = cart_product_ids | append: prod_id_str | append: ',' -%}
+            {%- break -%}
+          {%- endunless -%}
+        {%- endfor -%}
+      {%- endif -%}
+
+      {%- if upsell_product != blank or cross_sell_1 != blank or cross_sell_2 != blank -%}
+        <div class="related-products cart-offers-section" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(var(--color-foreground), 0.1);">
+          <h2 class="related-products__heading inline-richtext h2" style="font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; text-align: left; color: rgb(var(--color-foreground));">
+            🔥 Upgrade Your Selection
+          </h2>
+          <ul class="grid product-grid grid--4-col-desktop grid--2-col-tablet-down" role="list">
+            {%- if upsell_product != blank -%}
+              <li class="grid__item">
+                {% render 'card-product',
+                  card_product: upsell_product,
+                  custom_badge: 'Best Choice',
+                  media_aspect_ratio: 'square',
+                  show_secondary_image: true,
+                  show_vendor: false,
+                  show_rating: true,
+                  section_id: section.id
+                %}
+              </li>
+            {%- endif -%}
+
+            {%- if cross_sell_1 != blank -%}
+              <li class="grid__item">
+                {% render 'card-product',
+                  card_product: cross_sell_1,
+                  media_aspect_ratio: 'square',
+                  show_secondary_image: true,
+                  show_vendor: false,
+                  show_rating: true,
+                  section_id: section.id
+                %}
+              </li>
+            {%- endif -%}
+
+            {%- if cross_sell_2 != blank -%}
+              <li class="grid__item">
+                {% render 'card-product',
+                  card_product: cross_sell_2,
+                  media_aspect_ratio: 'square',
+                  show_secondary_image: true,
+                  show_vendor: false,
+                  show_rating: true,
+                  section_id: section.id
+                %}
+              </li>
+            {%- endif -%}
+          </ul>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.main-cart-footer.name",
+  "class": "cart__footer-wrapper",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },    
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "subtotal",
+      "name": "t:sections.main-cart-footer.blocks.subtotal.name",
+      "limit": 1
+    },
+    {
+      "type": "buttons",
+      "name": "t:sections.main-cart-footer.blocks.buttons.name",
+      "limit": 1
+    },
+    {
+      "type": "@app"
+    }
+  ]
+}
+{% endschema %}

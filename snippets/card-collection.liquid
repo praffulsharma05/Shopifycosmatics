@@ -1,0 +1,158 @@
+{% comment %}
+  Renders a collection card
+
+  Accepts:
+  - card_collection: {Object} Collection Liquid object
+  - media_aspect_ratio: {String} Size of the product image card. Values are "square" and "portrait". Default is "square" (optional)
+  - columns: {Number}
+  - extend_height: {Boolean} Card height extends to available container space. Default: false (optional)
+  - wrapper_class: {String} Wrapper class for card (optional)
+  - placeholder_image: {String} Placeholder image when collection is empty (optional)
+
+  Usage:
+  {% render 'card-collection' %}
+{% endcomment %}
+
+{%- liquid
+  assign handle_lower = card_collection.handle | downcase
+  assign title_lower = card_collection.title | downcase
+
+  assign skip_card = false
+  if handle_lower contains 'best' or title_lower contains 'best' or handle_lower contains 'cross' or title_lower contains 'cross'
+    assign skip_card = true
+  endif
+
+  assign collection_image = card_collection.featured_image | default: card_collection.image | default: card_collection.products.first.featured_image
+
+  assign fallback_coll_img = 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=600&auto=format&fit=crop'
+  if handle_lower contains 'makeup' or title_lower contains 'makeup'
+    assign fallback_coll_img = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop'
+  elsif handle_lower contains 'hair' or title_lower contains 'hair'
+    assign fallback_coll_img = 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?q=80&w=600&auto=format&fit=crop'
+  elsif handle_lower contains 'skin' or title_lower contains 'skin'
+    assign fallback_coll_img = 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=600&auto=format&fit=crop'
+  elsif handle_lower contains 'perfume' or handle_lower contains 'fragrance' or title_lower contains 'perfume'
+    assign fallback_coll_img = 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600&auto=format&fit=crop'
+  elsif handle_lower contains 'best' or handle_lower contains 'seller'
+    assign fallback_coll_img = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=600&auto=format&fit=crop'
+  endif
+
+  assign card_img_src = fallback_coll_img
+  if collection_image
+    assign raw_url = collection_image | image_url: width: 600
+    if raw_url contains 'http://' or raw_url contains 'https://'
+      assign card_img_src = raw_url
+    elsif raw_url contains '//'
+      assign card_img_src = 'https:' | append: raw_url
+    elsif raw_url != blank
+      assign card_img_src = raw_url
+    endif
+  endif
+
+  assign ratio = 1
+  if collection_image and media_aspect_ratio == 'portrait'
+    assign ratio = 0.8
+  elsif collection_image and media_aspect_ratio == 'adapt'
+    assign ratio = collection_image.aspect_ratio
+  endif
+  if ratio == 0 or ratio == null
+    assign ratio = 1
+  endif
+  assign card_color_scheme = settings.card_color_scheme
+  assign card_style = settings.card_style
+  if wrapper_class == null or wrapper_class == 'none'
+    assign card_color_scheme = settings.collection_card_color_scheme
+    assign card_style = settings.collection_card_style
+  endif
+-%}
+
+{%- unless skip_card -%}
+
+<div class="card-wrapper animate-arrow {% if wrapper_class and wrapper_class != 'none' %}{{ wrapper_class }}{% else %}collection-card-wrapper{% endif %}" style="border-radius: 16px; overflow: visible;">
+  <div
+    class="
+      card
+      card--{{ card_style }}
+      card--media
+      {% if card_style == 'card' %} color-{{ card_color_scheme }} gradient{% endif %}
+      {% if extend_height %} card--extend-height{% endif %}
+    "
+    style="--ratio-percent: {{ 1 | divided_by: ratio | times: 100 }}%; border-radius: 16px; overflow: hidden;"
+  >
+    <div
+      class="card__inner ratio {% if card_style == 'standard' %}color-{{ card_color_scheme }} gradient{% endif %}"
+      style="--ratio-percent: {{ 1 | divided_by: ratio | times: 100 }}%; border-radius: 16px 16px 0 0; overflow: hidden;"
+    >
+      <div class="card__media" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+        <div class="media media--transparent media--hover-effect" style="width: 100%; height: 100%; position: relative;">
+          <img
+            src="{{ card_img_src }}"
+            onerror="this.onerror=null; this.src='{{ fallback_coll_img }}';"
+            sizes="
+              (min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 100 | divided_by: columns }}px,
+              (min-width: 750px) {% if columns > 1 %}calc((100vw - 10rem) / 2){% else %}calc(100vw - 10rem){% endif %},
+              calc(100vw - 3rem)
+            "
+            alt="{{ card_collection.title | escape }}"
+            width="{{ collection_image.width | default: 500 }}"
+            height="{{ collection_image.height | default: 500 }}"
+            loading="lazy"
+            decoding="async"
+            class="motion-reduce"
+            style="width: 100%; height: 100%; object-fit: cover; display: block;"
+          >
+        </div>
+      </div>
+    </div>
+    {%- if card_collection != blank or collection_image -%}
+      <div class="card__content" style="padding: 1.2rem 0.8rem 1.4rem; text-align: center; overflow: visible;">
+        <div class="card__information" style="text-align: center; width: 100%; overflow: visible;">
+          <h3 class="card__heading" style="color: #2e2a39; font-size: 1.8rem; font-weight: 600; text-align: center; line-height: 1.35; margin: 0; overflow: visible;">
+            <a
+              {% if card_collection == blank %}
+                role="link" aria-disabled="true"
+              {% else %}
+                href="{{ card_collection.url }}"
+              {% endif %}
+              class="full-unstyled-link"
+              style="color: #2e2a39; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; line-height: 1.35; overflow: visible; flex-wrap: wrap;"
+            >
+              {%- if card_collection.title != blank -%}
+                {{- card_collection.title | escape -}}
+              {%- else -%}
+                {{ 'onboarding.collection_title' | t }}
+              {%- endif -%}
+              <span class="icon-wrap" style="display: inline-block; vertical-align: middle; margin-left: 6px;">
+                {{- 'icon-arrow.svg' | inline_asset_content -}}
+              </span>
+            </a>
+          </h3>
+          {%- if collection_image == null and card_collection.description != blank -%}
+            <p class="card__caption" style="color: rgba(46, 42, 57, 0.75); text-align: center;">
+              {{- card_collection.description | strip_html | truncatewords: 12 -}}
+              <span class="icon-wrap">
+                {{- 'icon-arrow.svg' | inline_asset_content -}}
+              </span>
+            </p>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+    {%- if card_collection == blank -%}
+      <div class="card__content" style="text-align: center;">
+        <div class="card__information" style="text-align: center;">
+          <h3 class="card__heading card__heading--placeholder" style="text-align: center;">
+            <a role="link" aria-disabled="true" class="full-unstyled-link" style="display: inline-flex; align-items: center; justify-content: center;">
+              {{ 'onboarding.collection_title' | t }}
+              <span class="icon-wrap" style="margin-left: 6px;">
+                {{- 'icon-arrow.svg' | inline_asset_content -}}
+              </span>
+            </a>
+          </h3>
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+{%- endunless -%}
+

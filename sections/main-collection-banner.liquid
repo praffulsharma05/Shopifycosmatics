@@ -1,0 +1,159 @@
+{% comment %}theme-check-disable ImgLazyLoading{% endcomment %}
+{{ 'component-collection-hero.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign handle_lower = collection.handle | downcase
+  assign title_lower = collection.title | downcase
+
+  assign fallback_hero_img = 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=1800&auto=format&fit=crop'
+  assign tag_line = 'VEGAN & BOTANICAL SKINCARE'
+  assign story_title = 'THE SCIENCE OF RADIANT SKIN'
+  assign story_desc = 'Discover our carefully crafted clean skincare formulations enriched with organic botanicals to hydrate, nourish, and reveal your natural glow.'
+
+  if handle_lower contains 'perfume' or title_lower contains 'perfume' or handle_lower contains 'fragrance'
+    assign fallback_hero_img = 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1800&auto=format&fit=crop'
+    assign tag_line = 'VEGAN FRAGRANCES'
+    assign story_title = 'A STORY IN EVERY BOTTLE'
+    assign story_desc = 'Discover an experiential olfactory journey where each fragrance tells a unique story inspired by moments, memories, and places.'
+  elsif handle_lower contains 'hair' or title_lower contains 'hair'
+    assign fallback_hero_img = 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?q=80&w=1800&auto=format&fit=crop'
+    assign tag_line = 'ESSENTIAL HAIR CARE'
+    assign story_title = 'LUXURY BOTANICAL HAIR RITUALS'
+    assign story_desc = 'Transform your hair care routine with gentle, nourishing formulas designed to strengthen strands and enhance natural shine.'
+  elsif handle_lower contains 'makeup' or title_lower contains 'makeup' or handle_lower contains 'lip'
+    assign fallback_hero_img = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=1800&auto=format&fit=crop'
+    assign tag_line = 'CLEAN BEAUTY & COSMETICS'
+    assign story_title = 'EXPRESS YOUR UNIQUE RADIANCE'
+    assign story_desc = 'High-pigment, cruelty-free formulas infused with skin-loving ingredients for effortless day-to-night looks.'
+  elsif handle_lower contains 'bath' or title_lower contains 'body'
+    assign fallback_hero_img = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1800&auto=format&fit=crop'
+    assign tag_line = 'BODY & BATH RITUALS'
+    assign story_title = 'PAMPER YOUR SENSES'
+    assign story_desc = 'Immerse yourself in rich, aromatic body care essentials that leave skin velvety soft and deeply hydrated.'
+  endif
+
+  assign hero_img_src = fallback_hero_img
+  if collection.image
+    assign hero_img_src = collection.image | image_url: width: 1800
+  elsif collection.products.first.featured_image
+    assign hero_img_src = collection.products.first.featured_image | image_url: width: 1800
+  endif
+-%}
+
+<div class="collection-hero-container" style="width: 100%;">
+  <!-- Main Hero Banner -->
+  <div
+    class="collection-hero-banner"
+    style="position: relative; width: 100%; min-height: 280px; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: #1a1721;"
+  >
+    <img
+      src="{{ hero_img_src }}"
+      alt="{{ collection.title | escape }}"
+      width="{{ collection.image.width | default: 1800 }}"
+      height="{{ collection.image.height | default: 600 }}"
+      loading="eager"
+      onerror="this.onerror=null; this.src='{{ fallback_hero_img }}';"
+      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 0.75; filter: brightness(0.85);"
+    >
+    <div
+      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%);"
+    ></div>
+
+    <div
+      class="collection-hero-content page-width"
+      style="position: relative; z-index: 3; text-align: center; color: #ffffff; padding: 4.5rem 2rem;"
+    >
+      <span style="display: inline-block; letter-spacing: 0.35rem; font-size: 1.3rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1.2rem; color: #fdfbf7; text-shadow: 0 2px 4px rgba(0,0,0,0.4);">
+        {{ tag_line }}
+      </span>
+      <h1 style="font-size: clamp(3rem, 5vw, 5.2rem); font-weight: 700; letter-spacing: 0.2rem; text-transform: uppercase; color: #ffffff; margin: 0 0 1.5rem 0; text-shadow: 0 4px 12px rgba(0,0,0,0.5); line-height: 1.1;">
+        {{ collection.title | escape }}
+      </h1>
+      {%- if collection.description != blank -%}
+        <div
+          class="rte"
+          style="max-width: 750px; margin: 0 auto; font-size: 1.6rem; line-height: 1.6; color: rgba(255,255,255,0.92); font-weight: 400; text-shadow: 0 2px 4px rgba(0,0,0,0.4);"
+        >
+          {{ collection.description }}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  <!-- Breadcrumb Navigation -->
+  <div
+    class="collection-breadcrumb-wrapper"
+    style="background: #ffffff; border-bottom: 1px solid rgba(46, 42, 57, 0.08); padding: 1.2rem 1.5rem;"
+  >
+    <div class="page-width" style="padding: 0;">
+      <nav
+        class="breadcrumb"
+        aria-label="breadcrumbs"
+        style="font-size: 1.3rem; color: #767283; letter-spacing: 0.05rem;"
+      >
+        <a
+          href="/"
+          style="color: #767283; text-decoration: none; transition: color 0.2s;"
+          onmouseover="this.style.color='#9b046f'"
+          onmouseout="this.style.color='#767283'"
+          >Home</a
+        >
+        <span style="margin: 0 0.8rem; color: #b5b2bd;">/</span>
+        <a
+          href="/collections"
+          style="color: #767283; text-decoration: none; transition: color 0.2s;"
+          onmouseover="this.style.color='#9b046f'"
+          onmouseout="this.style.color='#767283'"
+          >Collections</a
+        >
+        <span style="margin: 0 0.8rem; color: #b5b2bd;">/</span>
+        <span style="color: #2e2a39; font-weight: 600; text-transform: uppercase;">
+          {{- collection.title | escape -}}
+        </span>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Sub-Hero Story Intro Section -->
+  <div class="collection-story-section" style="background: #ffffff; text-align: center; padding: 3rem 1.5rem 2rem 1.5rem; box-sizing: border-box; width: 100%;">
+    <div style="max-width: 800px; margin: 0 auto; padding: 0 0.5rem;">
+      <h2 style="font-size: clamp(2rem, 4.5vw, 3.2rem); font-weight: 600; letter-spacing: 0.08rem; text-transform: uppercase; color: #2e2a39; margin-bottom: 1.2rem; line-height: 1.25; word-break: break-word; overflow-wrap: break-word;">
+        {{ story_title }}
+      </h2>
+      <p style="font-size: clamp(1.4rem, 2.5vw, 1.6rem); line-height: 1.65; color: #5a5666; font-weight: 400; margin: 0 auto; max-width: 750px;">
+        {{ story_desc }}
+      </p>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.main-collection-banner.name",
+  "class": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:sections.main-collection-banner.settings.paragraph.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "default": true,
+      "label": "t:sections.main-collection-banner.settings.show_collection_description.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "default": true,
+      "label": "t:sections.main-collection-banner.settings.show_collection_image.label"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}

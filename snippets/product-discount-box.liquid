@@ -1,0 +1,122 @@
+{% comment %}
+  Renders the Product Discount Box using Metafields.
+  Metafields used:
+  - product.metafields.custom.discount_title
+  - product.metafields.custom.coupon_code
+  - product.metafields.custom.minimum_purchase
+{% endcomment %}
+
+{%- if product.metafields.custom.discount_title != blank or product.metafields.custom.coupon_code != blank -%}
+  <div class="product-discount-box">
+    {%- if product.metafields.custom.discount_title != blank -%}
+      <p class="product-discount-box__title">
+        🎉 {{ product.metafields.custom.discount_title }}
+      </p>
+    {%- endif -%}
+
+    {%- if product.metafields.custom.coupon_code != blank -%}
+      <div class="product-discount-box__code-row">
+        <span>Use Code:</span>
+        <strong class="product-discount-box__code">{{ product.metafields.custom.coupon_code }}</strong>
+        <button type="button" class="product-discount-box__btn" onclick="applyDiscountCode('{{ product.metafields.custom.coupon_code }}', this)">Apply</button>
+      </div>
+    {%- endif -%}
+
+    {%- if product.metafields.custom.minimum_purchase != blank -%}
+      <p class="product-discount-box__min-purchase">
+        {{ product.metafields.custom.minimum_purchase }}
+      </p>
+    {%- endif -%}
+  </div>
+
+  <style>
+    .product-discount-box {
+      background: #fff7e6;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      font-family: inherit;
+    }
+
+    .product-discount-box p {
+      margin: 4px 0;
+    }
+
+    .product-discount-box__title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2e2a39;
+    }
+
+    .product-discount-box__code-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .product-discount-box__code {
+      color: #d60000;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      background: #ffe8b3;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .product-discount-box__min-purchase {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .product-discount-box__btn {
+      margin-left: auto;
+      border: 1px dashed #d60000;
+      background: #fff;
+      color: #d60000;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .product-discount-box__btn:hover {
+      background: #d60000;
+      color: #fff;
+    }
+  </style>
+
+  <script>
+    function applyDiscountCode(code, btn) {
+      if (typeof copyOfferCode === 'function') {
+        copyOfferCode(code, btn);
+        return;
+      }
+
+      fetch('/discount/' + encodeURIComponent(code)).catch(() => {});
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code);
+      }
+
+      const box = btn.closest('.product-discount-box');
+      const descText = box ? (box.querySelector('.product-discount-box__title')?.textContent || '') : '';
+
+      if (typeof updatePDPPriceDisplay === 'function') {
+        updatePDPPriceDisplay(code, descText);
+      }
+
+      const originalText = btn.textContent;
+      btn.textContent = 'Applied!';
+      btn.style.background = '#d60000';
+      btn.style.color = '#ffffff';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '#fff';
+        btn.style.color = '#d60000';
+      }, 3000);
+    }
+  </script>
+{%- endif -%}

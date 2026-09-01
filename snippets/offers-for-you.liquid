@@ -1,0 +1,460 @@
+{% comment %}
+  Renders the "Offers For You" carousel card block.
+{% endcomment %}
+<div class="offers-for-you-container">
+  <div class="offers-for-you__header">
+    <div class="offers-for-you__title-group">
+      <span class="offers-for-you__title">Offers For You</span>
+      <span class="offers-for-you__badge">Limited offer</span>
+    </div>
+    <div class="offers-for-you__nav">
+      <button type="button" class="offers-for-you__nav-btn prev" onclick="scrollOffers(-1)" aria-label="Previous offer">&lt;</button>
+      <button type="button" class="offers-for-you__nav-btn next" onclick="scrollOffers(1)" aria-label="Next offer">&gt;</button>
+    </div>
+  </div>
+
+  <div class="offers-for-you__slider" id="OffersSlider">
+    {%- comment -%} Product Specific Discount via Metafield {%- endcomment -%}
+    {%- if product.metafields.custom.coupon_code != blank or product.metafields.custom.discount_code != blank -%}
+      {%- assign code_val = product.metafields.custom.coupon_code | default: product.metafields.custom.discount_code -%}
+      {%- assign title_val = product.metafields.custom.discount_title | default: product.metafields.custom.discount_description | default: 'Special product offer' -%}
+      {%- assign min_val = product.metafields.custom.minimum_purchase -%}
+      <div class="offers-for-you__card">
+        <div class="offers-for-you__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+          </svg>
+        </div>
+        <div class="offers-for-you__info">
+          <div class="offers-for-you__code">{{ code_val }}</div>
+          <div class="offers-for-you__desc">{{ title_val }}{% if min_val != blank %} ({{ min_val }}){% endif %}</div>
+        </div>
+        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('{{ code_val }}', this)">Apply</button>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Real Discount 1: BONG123 (Niacinamide Sunscreen) {%- endcomment -%}
+    {%- if product.title contains 'Niacinamide' or product.handle contains 'niacinamide' -%}
+      <div class="offers-for-you__card">
+        <div class="offers-for-you__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+          </svg>
+        </div>
+        <div class="offers-for-you__info">
+          <div class="offers-for-you__code">BONG123</div>
+          <div class="offers-for-you__desc">90% off 5% Niacinamide Hydra Glow Gel Sunscreen (Min. purchase ₹800.00)</div>
+        </div>
+        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('BONG123', this)">Apply</button>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Real Discount 2: LIP20 (Lipstick) {%- endcomment -%}
+    {%- if product.title contains 'Lipstick' or product.handle contains 'lipstick' -%}
+      <div class="offers-for-you__card">
+        <div class="offers-for-you__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+          </svg>
+        </div>
+        <div class="offers-for-you__info">
+          <div class="offers-for-you__code">LIP20</div>
+          <div class="offers-for-you__desc">20% off Velvet Kiss Matte Lipstick (Pink) (Min. purchase ₹1,000.00)</div>
+        </div>
+        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('LIP20', this)">Apply</button>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Real Discount 3: SAVE500 (Skincare / Shampoo) {%- endcomment -%}
+    <div class="offers-for-you__card">
+      <div class="offers-for-you__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+          <line x1="7" y1="7" x2="7.01" y2="7"></line>
+        </svg>
+      </div>
+      <div class="offers-for-you__info">
+        <div class="offers-for-you__code">SAVE500</div>
+        <div class="offers-for-you__desc">₹500.00 off Skincare • Minimum purchase of ₹2,000.00</div>
+      </div>
+      <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('SAVE500', this)">Apply</button>
+    </div>
+
+    {%- comment -%} Real Discount 4: WELCOME10 {%- endcomment -%}
+    <div class="offers-for-you__card">
+      <div class="offers-for-you__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="5" x2="5" y2="19"></line>
+          <circle cx="6.5" cy="6.5" r="2.5"></circle>
+          <circle cx="17.5" cy="17.5" r="2.5"></circle>
+        </svg>
+      </div>
+      <div class="offers-for-you__info">
+        <div class="offers-for-you__code">WELCOME10</div>
+        <div class="offers-for-you__desc">10% off entire order</div>
+      </div>
+      <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('WELCOME10', this)">Apply</button>
+    </div>
+
+    {%- comment -%} Real Discount 5: SAVE25 {%- endcomment -%}
+    <div class="offers-for-you__card">
+      <div class="offers-for-you__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="5" x2="5" y2="19"></line>
+          <circle cx="6.5" cy="6.5" r="2.5"></circle>
+          <circle cx="17.5" cy="17.5" r="2.5"></circle>
+        </svg>
+      </div>
+      <div class="offers-for-you__info">
+        <div class="offers-for-you__code">SAVE25</div>
+        <div class="offers-for-you__desc">25% off entire order</div>
+      </div>
+      <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('SAVE25', this)">Apply</button>
+    </div>
+
+    {%- comment -%} Real Discount 6: BOGO {%- endcomment -%}
+    <div class="offers-for-you__card">
+      <div class="offers-for-you__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+          <line x1="7" y1="7" x2="7.01" y2="7"></line>
+        </svg>
+      </div>
+      <div class="offers-for-you__info">
+        <div class="offers-for-you__code">BOGO</div>
+        <div class="offers-for-you__desc">Buy 1 item, get 1 item free</div>
+      </div>
+      <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('BOGO', this)">Apply</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .offers-for-you-container {
+    background-color: #f1edfe;
+    border-radius: 16px;
+    padding: 1.2rem;
+    margin: 1.5rem 0;
+    box-sizing: border-box;
+  }
+
+  .offers-for-you__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .offers-for-you__title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .offers-for-you__title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2e2a39;
+  }
+
+  .offers-for-you__badge {
+    background-color: #e4dbfe;
+    color: #5b36b2;
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+  }
+
+  .offers-for-you__nav {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .offers-for-you__nav-btn {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    border: none;
+    background: #ffffff;
+    color: #2e2a39;
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+  }
+
+  .offers-for-you__slider {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .offers-for-you__slider::-webkit-scrollbar {
+    display: none;
+  }
+
+  .offers-for-you__card {
+    flex: 0 0 calc(85% - 0.5rem);
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    scroll-snap-align: start;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    box-sizing: border-box;
+  }
+
+  .offers-for-you__icon {
+    width: 3.6rem;
+    height: 3.6rem;
+    border-radius: 50%;
+    background: #f4f2f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .offers-for-you__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .offers-for-you__code {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2e2a39;
+    letter-spacing: 0.05rem;
+  }
+
+  .offers-for-you__desc {
+    font-size: 1.1rem;
+    color: #666070;
+    line-height: 1.35;
+    margin-top: 0.2rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .offers-for-you__copy-btn {
+    border: 1px dashed #2e2a39;
+    background: transparent;
+    color: #2e2a39;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .offers-for-you__copy-btn:hover {
+    background: #2e2a39;
+    color: #ffffff;
+  }
+</style>
+
+<script>
+  function scrollOffers(direction) {
+    const slider = document.getElementById('OffersSlider');
+    if (slider) {
+      slider.scrollBy({ left: direction * 220, behavior: 'smooth' });
+    }
+  }
+
+  function showDiscountNotification(message, isError = false) {
+    let toast = document.getElementById('discount-toast-notification');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'discount-toast-notification';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 99999;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 420px;
+        line-height: 1.4;
+      `;
+      document.body.appendChild(toast);
+    }
+    toast.style.background = isError ? '#ffebee' : '#e8f5e9';
+    toast.style.color = isError ? '#c62828' : '#1b5e20';
+    toast.style.border = isError ? '1px solid #ef9a9a' : '1px solid #a5d6a7';
+    toast.innerHTML = (isError ? '⚠️ ' : '🎉 ') + message;
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+
+    if (toast.timeoutId) clearTimeout(toast.timeoutId);
+    toast.timeoutId = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+    }, 4000);
+  }
+
+  function getMinPurchaseFromDesc(code, descText) {
+    if (code === 'BONG123') return 800;
+    if (code === 'LIP20') return 1000;
+    if (code === 'SAVE500') return 2000;
+    if (code === 'WELCOME10' || code === 'SAVE25' || code === 'BOGO') return 0;
+
+    if (descText) {
+      const match = descText.match(/min(?:imum|\.)?\s*purchase\s*(?:of)?\s*[₹Rs.]*\s*([\d,]+(?:\.\d+)?)/i);
+      if (match && match[1]) {
+        const val = parseFloat(match[1].replace(/,/g, ''));
+        if (!isNaN(val)) return val;
+      }
+    }
+    return 0;
+  }
+
+  function getCurrentProductPrice() {
+    const priceBox = document.querySelector('.product__price-box .price') || document.querySelector('.price');
+    if (!priceBox) return 0;
+
+    const priceItem = priceBox.querySelector('.price-item--sale') || priceBox.querySelector('.price-item--regular') || priceBox.querySelector('.price-item');
+    if (!priceItem) return 0;
+
+    if (!priceBox.dataset.originalNumericPrice) {
+      const rawText = priceItem.textContent.replace(/[^0-9.]/g, '');
+      priceBox.dataset.originalNumericPrice = parseFloat(rawText) || 0;
+      priceBox.dataset.originalPriceHtml = priceBox.innerHTML;
+    }
+
+    return parseFloat(priceBox.dataset.originalNumericPrice) || 0;
+  }
+
+  function updatePDPPriceDisplay(code, descText) {
+    const priceBox = document.querySelector('.product__price-box .price') || document.querySelector('.price');
+    if (!priceBox) return;
+
+    const priceItem = priceBox.querySelector('.price-item--sale') || priceBox.querySelector('.price-item--regular') || priceBox.querySelector('.price-item');
+    if (!priceItem) return;
+
+    if (!priceBox.dataset.originalPriceHtml) {
+      priceBox.dataset.originalPriceHtml = priceBox.innerHTML;
+      const rawText = priceItem.textContent.replace(/[^0-9.]/g, '');
+      priceBox.dataset.originalNumericPrice = parseFloat(rawText) || 0;
+    }
+
+    const origPrice = parseFloat(priceBox.dataset.originalNumericPrice);
+    if (!origPrice || origPrice <= 0) return;
+
+    let finalPrice = origPrice;
+    let discountText = 'Discount Applied!';
+
+    if (code === 'BONG123' || (descText && descText.includes('90%'))) {
+      finalPrice = origPrice * 0.10;
+      discountText = '90% OFF Applied!';
+    } else if (code === 'LIP20' || (descText && descText.includes('20%'))) {
+      finalPrice = origPrice * 0.80;
+      discountText = '20% OFF Applied!';
+    } else if (code === 'SAVE25' || (descText && descText.includes('25%'))) {
+      finalPrice = origPrice * 0.75;
+      discountText = '25% OFF Applied!';
+    } else if (code === 'WELCOME10' || (descText && descText.includes('10%'))) {
+      finalPrice = origPrice * 0.90;
+      discountText = '10% OFF Applied!';
+    } else if (code === 'SAVE500' || (descText && descText.includes('500'))) {
+      finalPrice = Math.max(0, origPrice - 500);
+      discountText = '₹500 OFF Applied!';
+    } else if (descText && descText.includes('%')) {
+      const match = descText.match(/(\d+)%/);
+      if (match) {
+        const pct = parseFloat(match[1]);
+        finalPrice = origPrice * ((100 - pct) / 100);
+        discountText = `${pct}% OFF Applied!`;
+      }
+    }
+
+    const currencySymbol = priceItem.textContent.trim().replace(/[0-9.,\s]/g, '') || '₹';
+
+    priceBox.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+        <s style="color: #888; text-decoration: line-through; font-size: 1.4rem;">${currencySymbol}${origPrice.toFixed(2)}</s>
+        <span style="color: #2e7d32; font-size: 2.2rem; font-weight: 700;">${currencySymbol}${finalPrice.toFixed(2)}</span>
+        <span style="background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 6px; font-size: 1.1rem; font-weight: 600;">
+          Code <strong>${code}</strong> (${discountText})
+        </span>
+      </div>
+      <div style="font-size: 1.1rem; color: #666;">(MRP inclusive of all taxes)</div>
+    `;
+  }
+
+  function copyOfferCode(code, btn) {
+    const card = btn.closest('.offers-for-you__card') || btn.closest('.product-discount-box');
+    const descText = card ? (card.querySelector('.offers-for-you__desc')?.textContent || card.querySelector('.product-discount-box__title')?.textContent || card.querySelector('.product-discount-box__min-purchase')?.textContent || '') : '';
+
+    const minPurchase = getMinPurchaseFromDesc(code, descText);
+    const currentPrice = getCurrentProductPrice();
+
+    // VALIDATION STEP: Check minimum purchase condition
+    if (minPurchase > 0 && currentPrice < minPurchase) {
+      showDiscountNotification(
+        `Cannot apply code <strong>${code}</strong>: Minimum purchase of ₹${minPurchase.toFixed(2)} required (Current item price: ₹${currentPrice.toFixed(2)}).`,
+        true
+      );
+
+      if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
+
+      btn.textContent = `Min ₹${minPurchase} needed`;
+      btn.style.background = '#d32f2f';
+      btn.style.color = '#ffffff';
+      btn.style.borderColor = '#d32f2f';
+
+      setTimeout(() => {
+        btn.textContent = btn.dataset.originalText;
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 3500);
+
+      return false;
+    }
+
+    // Condition passed: proceed with application
+    fetch('/discount/' + encodeURIComponent(code)).catch(() => {});
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code);
+    }
+    
+    updatePDPPriceDisplay(code, descText);
+
+    showDiscountNotification(`Discount code <strong>${code}</strong> applied successfully!`, false);
+
+    if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
+
+    btn.textContent = 'Applied!';
+    btn.style.background = '#2e2a39';
+    btn.style.color = '#ffffff';
+    setTimeout(() => {
+      btn.textContent = btn.dataset.originalText;
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 3000);
+  }
+</script>

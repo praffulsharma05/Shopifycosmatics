@@ -1,0 +1,264 @@
+{% comment %}
+  Renders a product card
+
+  Accepts:
+  - card_product: {Object} Product Liquid object (optional)
+  - media_aspect_ratio: {String} Size of the product image card. Values are "square" and "portrait". Default is "square" (optional)
+  - image_shape: {String} Image mask to apply to the product image card. Values are "arch", "blob", "chevronleft", "chevronright", "diamond", "parallelogram", and "round". (optional)
+  - show_secondary_image: {Boolean} Show the secondary image on hover. Default: false (optional)
+  - show_vendor: {Boolean} Show the product vendor. Default: false
+  - show_rating: {Boolean} Show the product rating. Default: false
+  - extend_height: {Boolean} Card height extends to available container space. Default: true (optional)
+  - lazy_load: {Boolean} Image should be lazy loaded. Default: true (optional)
+  - skip_styles: {Boolean} Don't include component styles. Useful when rendering multiple product cards in a loop. Default: false (optional)
+  - quick_add: {Boolean} Show the quick add button.
+  - section_id: {String} The ID of the section that contains this card.
+  - horizontal_class: {Boolean} Add a card--horizontal class if set to true. Default: false (optional)
+  - horizontal_quick_add: {Boolean} Changes the quick add button styles when set to true. Default: false (optional)
+  - placeholder_image: {String} The placeholder image to use when no product exists. Default: 'product-apparel-2' (optional)
+
+  Usage:
+  {% render 'card-product', show_vendor: section.settings.show_vendor %}
+{% endcomment %}
+{%- unless skip_styles -%}
+  {{ 'component-rating.css' | asset_url | stylesheet_tag }}
+  {{ 'component-volume-pricing.css' | asset_url | stylesheet_tag }}
+
+  {{ 'component-price.css' | asset_url | stylesheet_tag }}
+  {{ 'quick-order-list.css' | asset_url | stylesheet_tag }}
+  {{ 'quantity-popover.css' | asset_url | stylesheet_tag }}
+{%- endunless -%}
+{%- if card_product and card_product != empty -%}
+  {%- liquid
+    assign card_product_image = card_product.featured_image | default: card_product.featured_media.preview_image | default: card_product.featured_media | default: card_product.media.first.preview_image | default: card_product.images.first | default: card_product.variants.first.featured_image
+
+    assign prod_handle_lower = card_product.handle | downcase
+    assign prod_title_lower = card_product.title | downcase
+
+    assign fallback_prod_img = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop'
+    if prod_handle_lower contains 'lipstick' or prod_title_lower contains 'lipstick' or prod_handle_lower contains 'lip' or prod_title_lower contains 'lip'
+      assign fallback_prod_img = 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?q=80&w=800&auto=format&fit=crop'
+    elsif prod_handle_lower contains 'blush' or prod_title_lower contains 'blush' or prod_handle_lower contains 'spanish' or prod_title_lower contains 'spanish'
+      assign fallback_prod_img = 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=800&auto=format&fit=crop'
+    elsif prod_handle_lower contains 'hair' or prod_title_lower contains 'hair' or prod_handle_lower contains 'shampoo' or prod_title_lower contains 'shampoo' or prod_handle_lower contains 'conditioner' or prod_title_lower contains 'conditioner'
+      assign fallback_prod_img = 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?q=80&w=800&auto=format&fit=crop'
+    elsif prod_handle_lower contains 'sunscreen' or prod_title_lower contains 'sunscreen' or prod_handle_lower contains 'skin' or prod_title_lower contains 'skin' or prod_handle_lower contains 'wash' or prod_title_lower contains 'wash'
+      assign fallback_prod_img = 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800&auto=format&fit=crop'
+    elsif prod_handle_lower contains 'shaving' or prod_title_lower contains 'shaving'
+      assign fallback_prod_img = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800&auto=format&fit=crop'
+    elsif prod_handle_lower contains 'foundation' or prod_title_lower contains 'foundation'
+      assign fallback_prod_img = 'https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?q=80&w=800&auto=format&fit=crop'
+    endif
+
+    assign card_img_src = fallback_prod_img
+    if card_product_image
+      assign raw_prod_url = card_product_image | image_url: width: 800
+      if raw_prod_url contains '//'
+        assign card_img_src = 'https:' | append: raw_prod_url
+      elsif raw_prod_url != blank
+        assign card_img_src = raw_prod_url
+      endif
+    endif
+
+    assign ratio = 1
+    if card_product_image and media_aspect_ratio == 'portrait'
+      assign ratio = 0.8
+    elsif card_product_image and media_aspect_ratio == 'adapt'
+      assign ratio = card_product_image.aspect_ratio
+    endif
+    if ratio == 0 or ratio == null
+      assign ratio = 1
+    endif
+
+    assign total_inventory = 0
+    assign tracking_inventory = false
+    for variant in card_product.variants
+      if variant.inventory_management == 'shopify'
+        assign tracking_inventory = true
+        if variant.inventory_quantity > 0
+          assign total_inventory = total_inventory | plus: variant.inventory_quantity
+        endif
+      endif
+    endfor
+
+    assign inventory_badge_text = blank
+    assign inventory_badge_bg = blank
+    assign inventory_badge_color = '#ffffff'
+
+    if card_product.available == false
+      assign inventory_badge_text = 'products.product.sold_out' | t
+      assign inventory_badge_bg = '#3c3442'
+    elsif tracking_inventory
+      if total_inventory == 1
+        assign inventory_badge_text = '🔥 Last Item'
+        assign inventory_badge_bg = '#d90429'
+      elsif total_inventory > 1 and total_inventory <= 3
+        assign inventory_badge_text = '🔴 Only ' | append: total_inventory | append: ' Left'
+        assign inventory_badge_bg = '#d90429'
+      elsif total_inventory > 3 and total_inventory <= 5
+        assign inventory_badge_text = '🟠 Only ' | append: total_inventory | append: ' Left'
+        assign inventory_badge_bg = '#f77f00'
+      endif
+    endif
+
+    assign is_bestseller = false
+    if prod_handle_lower contains 'shaving' or prod_title_lower contains 'shaving' or card_product.tags contains 'bestseller'
+      assign is_bestseller = true
+    endif
+  -%}
+
+  <product-component view-event-payload="{{ card_product | standard_event_data: 'view', context: product_view_context | escape }}">
+    <div class="card-wrapper product-card-wrapper underline-links-hover" style="border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; height: 100%; background: #ffffff; border: 1px solid #e5e5e5; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+      <div
+        class="card card--media"
+        style="border-radius: 12px; overflow: hidden; background: #ffffff; display: flex; flex-direction: column; height: 100%; width: 100%; border: none;"
+      >
+        <div
+          class="card__inner"
+          style="border-radius: 12px 12px 0 0; overflow: hidden; background: #f8f8f8; position: relative; display: flex; flex-direction: column; flex: 0 0 auto; width: 100%;"
+        >
+          <div class="card__media" style="position: relative; width: 100%; height: 0; padding-top: 100%; overflow: hidden; background: #f8f8f8;">
+            <div class="media media--transparent media--hover-effect" style="background: #f8f8f8; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+              <img
+                src="{{ card_img_src }}"
+                onerror="this.onerror=null; this.src='{{ fallback_prod_img }}';"
+                sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 130 | divided_by: 4 }}px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)"
+                alt="{{ card_product.title | escape }}"
+                class="motion-reduce"
+                {% unless lazy_load == false %}
+                  loading="lazy"
+                {% endunless %}
+                decoding="async"
+                width="400"
+                height="400"
+                style="width: 100%; height: 100%; object-fit: contain; padding: 0; display: block;"
+              >
+            </div>
+          </div>
+          <button
+            type="button"
+            class="button-wishlist-icon"
+            style="position: absolute; top: 10px; right: 10px; z-index: 5; background: #ffffff; border: 1px solid #e5e5e5; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.08);"
+            aria-label="Add to wishlist"
+            data-product-handle="{{ card_product.handle }}"
+            data-product-title="{{ card_product.title | escape }}"
+            data-product-image="{{ card_product_image | image_url: width: 120 }}"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#2e2a39"
+              stroke-width="1.8"
+              class="icon icon-heart-card"
+              style="width: 18px; height: 18px;"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+
+          <div
+            class="card__badge {{ settings.badge_position }}"
+            style="position: absolute; bottom: 10px; left: 10px; z-index: 5; display: flex; flex-direction: column; gap: 4px; align-items: flex-start;"
+          >
+            {%- if inventory_badge_text != blank -%}
+              <span
+                id="Badge-{{ section_id }}-{{ card_product.id }}"
+                class="badge badge--bottom-left"
+                style="background: {{ inventory_badge_bg }}; color: {{ inventory_badge_color }}; padding: 4px 10px; border-radius: 8px; font-size: 1.1rem; font-weight: 600; text-transform: uppercase;"
+              >
+                {{ inventory_badge_text }}
+              </span>
+            {%- endif -%}
+
+            {%- if card_product.available and custom_badge != blank -%}
+              <span
+                id="Badge-{{ section_id }}-{{ card_product.id }}"
+                class="badge badge--bottom-left"
+                style="background: #9b046f; color: #ffffff; padding: 4px 10px; border-radius: 8px; font-size: 1.1rem; font-weight: 600;"
+              >
+                {{ custom_badge }}
+              </span>
+            {%- elsif card_product.compare_at_price > card_product.price and card_product.available -%}
+              <span
+                id="Badge-{{ section_id }}-{{ card_product.id }}"
+                class="badge badge--bottom-left color-{{ settings.sale_badge_color_scheme }}"
+                style="background: #5e3653; color: #ffffff; padding: 4px 10px; border-radius: 8px; font-size: 1.1rem; font-weight: 500;"
+              >
+                {{- 'products.product.on_sale' | t -}}
+              </span>
+            {%- elsif card_product.available and is_bestseller -%}
+              <span
+                id="Badge-{{ section_id }}-{{ card_product.id }}"
+                class="badge badge--bottom-left"
+                style="background: #9b046f; color: #ffffff; padding: 4px 10px; border-radius: 8px; font-size: 1.1rem; font-weight: 600;"
+              >
+                Best Seller
+              </span>
+            {%- endif -%}
+          </div>
+        </div>
+        <div class="card__content" style="padding: 1rem 1rem 1.4rem 1rem; text-align: center; display: flex; flex-direction: column; flex: 1 1 auto; justify-content: space-between; box-sizing: border-box; width: 100%; background: #ffffff;">
+          <div class="card__information" style="text-align: center; width: 100%; display: flex; flex-direction: column; flex: 1 1 auto; justify-content: flex-start; align-items: center; padding: 0; margin: 0;">
+            {%- if card_product.vendor != blank -%}
+              <div class="card__vendor" style="font-size: 1.1rem; color: #888; text-transform: none; letter-spacing: 0; margin-bottom: 2px;">
+                {{ card_product.vendor }}
+              </div>
+            {%- endif -%}
+            <h3
+              class="card__heading h5"
+              id="title-{{ section_id }}-{{ card_product.id }}"
+              style="color: #1a1a1a; font-size: 1.25rem; font-weight: 700; text-align: center; margin: 0 0 6px 0; padding: 0; text-transform: uppercase; letter-spacing: 0.02em; height: 2.5em; max-height: 2.5em; overflow: hidden; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; width: 100%;"
+            >
+              <a
+                href="{{ card_product.url }}"
+                id="CardLink-{{ section_id }}-{{ card_product.id }}"
+                class="full-unstyled-link"
+                style="color: #1a1a1a; text-decoration: none; display: block;"
+              >
+                {{ card_product.title | escape }}
+              </a>
+            </h3>
+            <div class="card-information" style="text-align: center; width: 100%; margin-top: auto; padding: 0; display: flex; flex-direction: column; align-items: center;">
+              {% render 'price', product: card_product, price_class: '', show_compare_at_price: true %}
+
+              {% liquid
+                assign card_rating = card_product.metafields.reviews.rating.value.rating | default: card_product.metafields.reviews.rating.value | default: 0
+                assign card_rating_count = card_product.metafields.reviews.rating_count.value | default: card_product.metafields.reviews.rating_count | default: 0
+              %}
+              {% if card_rating_count > 0 or card_rating > 0 %}
+                <div class="cart-item__rating-pill" style="margin: 6px auto 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: #f3f3f5; padding: 3px 10px; border-radius: 12px; font-size: 1.1rem; color: #333;" aria-label="{{ card_rating }} out of 5 stars">
+                  <span class="cart-item__rating-star-icon" style="color: #ffb400;">★</span>
+                  <span class="cart-item__rating-val" style="font-weight: 700;">{{ card_rating | round: 2 }}</span>
+                  <span class="cart-item__rating-divider">•</span>
+                  <span class="cart-item__rating-reviews" style="opacity: 0.8;">{{ card_rating_count }} reviews</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          <a
+            href="{{ card_product.url }}"
+            class="card__add-to-cart-btn"
+            style="display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 0.8rem; margin-bottom: 0; padding: 0.8rem 0; background: #1a1a1a; color: #ffffff; font-size: 1.15rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border: none; border-radius: 50px; text-align: center; text-decoration: none; cursor: pointer; flex-shrink: 0; box-sizing: border-box; min-height: 3.8rem;"
+          >
+            {%- if card_product.available == false -%}
+              {{ 'products.product.sold_out' | t }}
+            {%- elsif card_product.variants.size > 1 -%}
+              CHOOSE OPTIONS
+            {%- else -%}
+              ADD TO CART
+            {%- endif -%}
+          </a>
+        </div>
+      </div>
+    </div>
+  </product-component>
+{%- else -%}
+  {% render 'card-product-placeholder',
+    media_aspect_ratio: media_aspect_ratio,
+    extend_height: extend_height,
+    image_shape: image_shape,
+    placeholder_image: placeholder_image,
+    show_vendor: show_vendor
+  %}
+{%- endif -%}

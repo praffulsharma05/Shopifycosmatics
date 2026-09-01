@@ -1,0 +1,571 @@
+{% doc %}
+  @prompt
+    Create a full-width, full-screen hero section with an auto-playing looping background video (with fallback image support). Overlay content is centered in the viewport with: a small elegant uppercase supporting text label at the top (e.g. "SELF CARE FAVOURITES"), a large bold premium promotional heading below it (e.g. "Flat 25% Off Ends Today"), and a sleek minimal CTA button underneath (e.g. "Shop Now"). The text overlay should be positioned in the lower-center or center of the banner without covering too much of the video/image. Use a subtle dark gradient overlay at the bottom for text legibility. Clean luxury aesthetic with elegant serif or premium sans-serif typography. All text, video, image, button label, and button link should be customizable via Liquid schema settings.
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-video-hero-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 50vh;
+    min-height: 380px;
+    max-height: 520px;
+    overflow: hidden;
+    display: block;
+  }
+
+  .ai-video-hero-background-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .ai-video-hero-video-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+  }
+
+  .ai-video-hero-image-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-video-hero-placeholder-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-video-hero-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    max-height: 500px;
+  }
+
+  .ai-video-hero-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, {{ block.settings.overlay_opacity }}) 0%,
+      rgba(0, 0, 0, {{ block.settings.overlay_opacity | times: 0.5 }}) 50%,
+      transparent 100%
+    );
+    z-index: 2;
+  }
+
+  .ai-video-hero-content-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    text-align: center;
+    width: 90%;
+    max-width: {{ block.settings.content_max_width }}px;
+  }
+
+  .ai-video-hero-label-{{ ai_gen_id }} {
+    font-size: {{ block.settings.label_size }}px;
+    letter-spacing: {{ block.settings.label_spacing }}px;
+    text-transform: uppercase;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 {{ block.settings.label_margin }}px;
+    font-weight: 400;
+    opacity: 0.9;
+  }
+
+  .ai-video-hero-heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.heading_size }}px;
+    font-weight: {{ block.settings.heading_weight }};
+    color: {{ block.settings.text_color }};
+    margin: 0 0 {{ block.settings.heading_margin }}px;
+    line-height: 1.25;
+    overflow: visible;
+    word-break: break-word;
+    {% if block.settings.heading_font_style == 'serif' %}
+      font-family: Georgia, 'Times New Roman', serif;
+    {% elsif block.settings.heading_font_style == 'sans-serif' %}
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    {% endif %}
+  }
+
+  .ai-video-hero-button-{{ ai_gen_id }} {
+    display: inline-block;
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+    text-decoration: none;
+    font-size: {{ block.settings.button_font_size }}px;
+    font-weight: 500;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    border: {{ block.settings.button_border_width }}px solid {{ block.settings.button_border_color }};
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+  }
+
+  .ai-video-hero-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_bg_color }};
+    color: {{ block.settings.button_hover_text_color }};
+    border-color: {{ block.settings.button_hover_border_color }};
+    transform: translateY(-2px);
+  }
+
+  .ai-video-hero-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-video-hero-{{ ai_gen_id }} {
+      height: 42vh;
+      min-height: 280px;
+      max-height: 360px;
+    }
+
+    .ai-video-hero-label-{{ ai_gen_id }} {
+      font-size: {{ block.settings.label_size | times: 0.8 }}px;
+    }
+
+    .ai-video-hero-heading-{{ ai_gen_id }} {
+      font-size: clamp(24px, 6.5vw, {{ block.settings.heading_size | times: 0.65 }}px);
+      line-height: 1.25;
+      padding: 0 10px;
+    }
+
+    .ai-video-hero-button-{{ ai_gen_id }} {
+      font-size: {{ block.settings.button_font_size | times: 0.9 }}px;
+      padding: {{ block.settings.button_padding_vertical | times: 0.8 }}px {{ block.settings.button_padding_horizontal | times: 0.8 }}px;
+    }
+  }
+{% endstyle %}
+
+<video-hero-{{ ai_gen_id }} class="ai-video-hero-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+ <div class="ai-video-hero-background-{{ ai_gen_id }}">
+  {% if block.settings.video_url != blank %}
+   {% if block.settings.video_url contains 'youtube.com' or block.settings.video_url contains 'youtu.be' %}
+    {%- liquid
+        if block.settings.video_url contains 'v='
+          assign video_id = block.settings.video_url | split: 'v=' | last | split: '&' | first
+        else
+          assign video_id = block.settings.video_url | split: '/' | last | split: '?' | first
+        endif
+      -%}
+      <iframe 
+        class="ai-video-hero-video-{{ ai_gen_id }}"
+        src="https://www.youtube.com/embed/{{ video_id }}?autoplay=1&mute=1&loop=1&playlist={{ video_id }}&controls=0&modestbranding=1&playsinline=1&enablejsapi=1"
+        allow="autoplay; encrypted-media" 
+        allowfullscreen
+        style="border: none;"
+      ></iframe>
+    {% else %}
+      <video
+        class="ai-video-hero-video-{{ ai_gen_id }}"
+        autoplay
+        muted
+        loop
+        playsinline
+        {% if block.settings.fallback_image %}
+          poster="{{ block.settings.fallback_image | image_url: width: 2000 }}"
+        {% endif %}
+      >
+        <source src="{{ block.settings.video_url }}" type="video/mp4">
+      </video>
+    {% endif %}
+  {% elsif block.settings.fallback_image %}
+    <img
+      src="{{ block.settings.fallback_image | image_url: width: 2000 }}"
+      alt="{{ block.settings.fallback_image.alt | escape }}"
+      class="ai-video-hero-image-{{ ai_gen_id }}"
+      loading="eager"
+      width="{{ block.settings.fallback_image.width }}"
+      height="{{ block.settings.fallback_image.height }}"
+    >
+  {% else %}
+    <div class="ai-video-hero-placeholder-{{ ai_gen_id }}">
+      {{ 'hero-apparel-1' | placeholder_svg_tag }}
+    </div>
+  {% endif %}
+</div>
+
+  <div class="ai-video-hero-overlay-{{ ai_gen_id }}"></div>
+
+  <div class="ai-video-hero-content-{{ ai_gen_id }}">
+    {% if block.settings.label != blank %}
+      <div class="ai-video-hero-label-{{ ai_gen_id }}">
+        {{ block.settings.label }}
+      </div>
+    {% endif %}
+
+    {% if block.settings.heading != blank %}
+      <h1 class="ai-video-hero-heading-{{ ai_gen_id }}">
+        {{ block.settings.heading }}
+      </h1>
+    {% endif %}
+
+    {% if block.settings.button_label != blank %}
+      <a
+        href="{% if block.settings.button_link != blank %}{{ block.settings.button_link }}{% else %}/collections{% endif %}"
+        class="ai-video-hero-button-{{ ai_gen_id }}"
+      >
+        {{ block.settings.button_label }}
+      </a>
+    {% endif %}
+  </div>
+
+  {% if block.settings.video_url == blank and block.settings.fallback_image == blank %}
+    <div class="ai-video-hero-empty-state-{{ ai_gen_id }}">
+      Next, add a video URL or fallback image
+    </div>
+  {% endif %}
+</video-hero-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class VideoHero{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.video = this.querySelector('.ai-video-hero-video-{{ ai_gen_id }}');
+        if (this.video) {
+          this.ensureVideoPlays();
+        }
+      }
+
+      ensureVideoPlays() {
+        const playPromise = this.video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            this.video.muted = true;
+            this.video.play();
+          });
+        }
+      }
+    }
+
+    customElements.define('video-hero-{{ ai_gen_id }}', VideoHero{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Video hero",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Video"
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Video URL",
+      "info": "Upload video to Shopify Files and paste the URL here"
+    },
+    {
+      "type": "image_picker",
+      "id": "fallback_image",
+      "label": "Fallback image",
+      "info": "Shown when video is not available or loading"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "label": "Overlay opacity",
+      "default": 0.4
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "label",
+      "label": "Supporting label",
+      "default": "SELF CARE FAVOURITES"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Flat 25% Off Ends Today"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "min": 400,
+      "max": 1000,
+      "step": 50,
+      "unit": "px",
+      "label": "Content max width",
+      "default": 700
+    },
+    {
+      "type": "header",
+      "content": "Label style"
+    },
+    {
+      "type": "range",
+      "id": "label_size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "label_spacing",
+      "min": 0,
+      "max": 5,
+      "step": 0.5,
+      "unit": "px",
+      "label": "Letter spacing",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "label_margin",
+      "min": 5,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Bottom margin",
+      "default": 15
+    },
+    {
+      "type": "header",
+      "content": "Heading style"
+    },
+    {
+      "type": "select",
+      "id": "heading_font_style",
+      "label": "Font style",
+      "options": [
+        {
+          "value": "serif",
+          "label": "Serif"
+        },
+        {
+          "value": "sans-serif",
+          "label": "Sans-serif"
+        }
+      ],
+      "default": "serif"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 30,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Font size",
+      "default": 60
+    },
+    {
+      "type": "select",
+      "id": "heading_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi-bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "700"
+    },
+    {
+      "type": "range",
+      "id": "heading_margin",
+      "min": 10,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Bottom margin",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Button style"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Font size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "label": "Vertical padding",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "min": 20,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Horizontal padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "button_border_width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "Border width",
+      "default": 2
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Background color",
+      "default": "transparent"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Border color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Hover background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Hover text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_border_color",
+      "label": "Hover border color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "mobile_height",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "label": "Mobile height",
+      "default": 70
+    }
+  ],
+  "presets": [
+    {
+      "name": "Video hero"
+    }
+  ]
+}
+{% endschema %}
