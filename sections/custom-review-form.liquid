@@ -310,7 +310,7 @@
     line-height: 1;
   }
   .cr-star-picker .cr-pick-star:hover,
-  .cr-star-picker .cr-pick-star.active { color: #f5a623; transform: scale(1.15); }
+  .cr-star-picker .cr-pick-star.active { color: #f5a623 !important; transform: scale(1.15); }
   .cr-star-labels {
     display: flex;
     justify-content: space-between;
@@ -511,6 +511,21 @@
 -%}
 
 <script>
+window.selectedRating = 0;
+function selectStarRating(val) {
+  window.selectedRating = parseInt(val);
+  var stars = document.querySelectorAll('#crStarPicker .cr-pick-star');
+  stars.forEach(function(s, idx) {
+    if ((idx + 1) <= val) {
+      s.classList.add('active');
+      s.style.setProperty('color', '#f5a623', 'important');
+    } else {
+      s.classList.remove('active');
+      s.style.setProperty('color', '#cccccc', 'important');
+    }
+  });
+}
+
 function openReviewModal() {
   var overlay = document.getElementById('crReviewOverlay');
   if (overlay) {
@@ -673,11 +688,11 @@ function closeReviewModal() {
 
     <!-- Star Picker -->
     <div class="cr-star-picker" id="crStarPicker">
-      <button class="cr-pick-star" data-value="1" type="button">★</button>
-      <button class="cr-pick-star" data-value="2" type="button">★</button>
-      <button class="cr-pick-star" data-value="3" type="button">★</button>
-      <button class="cr-pick-star" data-value="4" type="button">★</button>
-      <button class="cr-pick-star" data-value="5" type="button">★</button>
+      <button class="cr-pick-star" data-value="1" type="button" onclick="selectStarRating(1)">★</button>
+      <button class="cr-pick-star" data-value="2" type="button" onclick="selectStarRating(2)">★</button>
+      <button class="cr-pick-star" data-value="3" type="button" onclick="selectStarRating(3)">★</button>
+      <button class="cr-pick-star" data-value="4" type="button" onclick="selectStarRating(4)">★</button>
+      <button class="cr-pick-star" data-value="5" type="button" onclick="selectStarRating(5)">★</button>
     </div>
     <div class="cr-star-labels"><span>Poor</span><span>Great</span></div>
 
@@ -1305,7 +1320,8 @@ function closeReviewModal() {
         return;
       }
 
-      if (selectedRating === 0) {
+      const currentRating = window.selectedRating || selectedRating || 0;
+      if (!currentRating) {
         msg.style.color = '#c00';
         msg.textContent = 'Please select a star rating.';
         return;
