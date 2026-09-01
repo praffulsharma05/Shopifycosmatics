@@ -1313,19 +1313,15 @@
 
         console.log('Sending review payload for admin approval:', payload);
 
-        // Fire-and-forget background dispatch (never blocks UI or throws CORS errors)
+        // Dispatch review submission directly to Google Sheet Web App
         try {
-          if (navigator.sendBeacon) {
-            const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain' });
-            navigator.sendBeacon("https://hook.eu1.make.com/vn6a10vfarr6v466vu7sjbo5kqyfmf6s", blob);
-          } else {
-            fetch("https://hook.eu1.make.com/vn6a10vfarr6v466vu7sjbo5kqyfmf6s", {
-              method: "POST",
-              headers: { "Content-Type": "text/plain" },
-              body: JSON.stringify(payload),
-              mode: 'no-cors'
-            }).catch(err => console.log('Background review webhook note:', err));
-          }
+          const googleSheetUrl = "https://script.google.com/macros/s/AKfycbx1ZIrQFn2Hj2Vw3aUDgDxt2W2DoDXFMEidgL9KOTERy0v8zIYVpAb-SoJzJWUMm0If/exec";
+          fetch(googleSheetUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify(payload),
+            mode: 'no-cors'
+          }).catch(err => console.log('Google Sheet dispatch note:', err));
         } catch (fetchErr) {
           console.log('Queued review dispatch:', fetchErr);
         }
