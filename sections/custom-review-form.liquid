@@ -229,13 +229,13 @@
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.55);
-    z-index: 9999;
+    z-index: 999999 !important;
     align-items: center;
     justify-content: center;
     padding: 2rem;
     animation: crFadeIn 0.25s ease;
   }
-  .cr-overlay.active { display: flex; }
+  .cr-overlay.active { display: flex !important; }
   @keyframes crFadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes crSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
@@ -695,45 +695,44 @@
 
 <script>
 (function() {
-  /* ===== Open / Close modal ===== */
-  const overlay = document.getElementById('crReviewOverlay');
-  const openBtn = document.getElementById('crWriteReviewBtn');
-  const closeBtn = document.getElementById('crModalClose');
+  /* ===== Open / Close modal with Event Delegation ===== */
+  document.addEventListener('click', function(e) {
+    const writeBtn = e.target.closest('#crWriteReviewBtn');
+    if (writeBtn) {
+      e.preventDefault();
+      const overlay = document.getElementById('crReviewOverlay');
+      if (overlay) {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      return;
+    }
 
-  function openModal(el) {
-    if (!el) return;
-    el.classList.add('active');
-    const modal = el.querySelector('.cr-modal');
-    if (modal) modal.scrollTop = 0;
-  }
+    const closeBtn = e.target.closest('#crModalClose');
+    if (closeBtn) {
+      e.preventDefault();
+      const overlay = document.getElementById('crReviewOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      return;
+    }
 
-  function closeModal(el) {
-    if (!el) return;
-    el.classList.remove('active');
-  }
-
-  if (openBtn && overlay) {
-    openBtn.addEventListener('click', () => {
-      openModal(overlay);
-      setTimeout(() => {
-        if (closeBtn) closeBtn.focus();
-      }, 50);
-    });
-  }
-  if (closeBtn && overlay) {
-    closeBtn.addEventListener('click', () => { closeModal(overlay); });
-  }
-  if (overlay) {
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closeModal(overlay);
-    });
-  }
+    const overlayEl = document.getElementById('crReviewOverlay');
+    if (overlayEl && e.target === overlayEl) {
+      overlayEl.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (overlay) closeModal(overlay);
-      const admOverlay = document.getElementById('crAdminOverlay');
-      if (admOverlay) closeModal(admOverlay);
+      const overlay = document.getElementById('crReviewOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
     }
   });
 
