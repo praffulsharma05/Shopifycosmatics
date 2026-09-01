@@ -875,16 +875,48 @@
     saveAllLocalReviews(reviews);
   }
 
-  // PUBLIC PRODUCT PAGE: Only render APPROVED reviews!
+  // PUBLIC PRODUCT PAGE: Render APPROVED reviews from LocalStorage + Live Google Sheet!
   function renderDynamicReviews() {
     const allRevs = getLocalReviews();
-    const approvedRevs = allRevs.filter(r => r.status === 'APPROVED');
+    let approvedRevs = allRevs.filter(r => r.status === 'APPROVED');
     
+    const googleSheetUrl = "https://script.google.com/macros/s/AKfycbzAIfA7Idka13nuFX1Yk_qJAuZ5fWMFFx5TwzP_8VzkH5EWsIcqVTFgHMFopKkrshYi/exec";
+    
+    // Fetch live Approved reviews from Google Sheet
+    fetch(googleSheetUrl)
+      .then(res => res.json())
+      .then(sheetData => {
+        if (Array.isArray(sheetData)) {
+          const currentHandle = "{{ product.handle }}".toLowerCase().trim();
+          const currentTitle = "{{ product.title | escape }}".toLowerCase().trim();
+          
+          sheetData.forEach(item => {
+            const h = String(item.product_handle || "").toLowerCase().trim();
+            if (h === currentHandle || h === currentTitle || h === "") {
+              // Avoid duplicates
+              if (!approvedRevs.some(existing => existing.review === item.review && existing.name === item.name)) {
+                approvedRevs.push({
+                  name: item.name,
+                  rating: parseInt(item.rating || 5),
+                  title: item.title,
+                  review: item.review,
+                  date: item.date,
+                  status: 'APPROVED'
+                });
+              }
+            }
+          });
+        }
+        buildReviewsListUI(approvedRevs);
+      })
+      .catch(err => {
+        console.log('Google sheet fetch note:', err);
+        buildReviewsListUI(approvedRevs);
+      });
+  }
+
+  function buildReviewsListUI(approvedRevs) {
     const dynamicContainer = document.getElementById('crDynamicReviews');
-    const emptyState = document.getElementById('crEmptyState');
-    const sortWrap = document.getElementById('crSortWrap');
-    const barsWrap = document.getElementById('crBarsWrap');
-    
     let serverReviewsList = document.getElementById('crServerReviews');
     if (!serverReviewsList) {
       serverReviewsList = document.createElement('ul');
@@ -938,7 +970,7 @@
               <div class="cr-review-body">${escapeHtml(rev.review)}</div>
             </div>
             <div class="cr-review-right">
-              <div class="cr-review-date">${rev.date}</div>
+              <div class="cr-review-date">${rev.date || ''}</div>
               ${imagesHtml}
             </div>
           </div>
