@@ -567,7 +567,7 @@
     </div>
 
     <div class="cr-actions">
-      <button class="cr-btn cr-btn--primary" id="crWriteReviewBtn" type="button">Write a review</button>
+      <button class="cr-btn cr-btn--primary" id="crWriteReviewBtn" type="button" onclick="openReviewModal()">Write a review</button>
       <button class="cr-btn cr-btn--outline" id="crAskQuestionBtn" type="button">Ask a question</button>
     </div>
   </div>
@@ -635,7 +635,7 @@
 <!-- ===== WRITE A REVIEW POPUP ===== -->
 <div class="cr-overlay" id="crReviewOverlay">
   <div class="cr-modal">
-    <button class="cr-modal-close" id="crModalClose" type="button" aria-label="Close">&times;</button>
+    <button class="cr-modal-close" id="crModalClose" type="button" onclick="closeReviewModal()" aria-label="Close">&times;</button>
     <h3 class="cr-modal-title">How would you rate this product?</h3>
     <p class="cr-modal-sub">We would love it if you would share a bit about your experience.</p>
 
@@ -695,34 +695,45 @@
 
 <script>
 (function() {
-  /* ===== Open / Close modal with Event Delegation ===== */
+  /* ===== Global Open / Close modal Functions ===== */
+  window.openReviewModal = function() {
+    const overlay = document.getElementById('crReviewOverlay');
+    if (overlay) {
+      overlay.style.setProperty('display', 'flex', 'important');
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      const modal = overlay.querySelector('.cr-modal');
+      if (modal) modal.scrollTop = 0;
+    }
+  };
+
+  window.closeReviewModal = function() {
+    const overlay = document.getElementById('crReviewOverlay');
+    if (overlay) {
+      overlay.style.setProperty('display', 'none', 'important');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  };
+
   document.addEventListener('click', function(e) {
     const writeBtn = e.target.closest('#crWriteReviewBtn');
     if (writeBtn) {
       e.preventDefault();
-      const overlay = document.getElementById('crReviewOverlay');
-      if (overlay) {
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
+      window.openReviewModal();
       return;
     }
 
     const closeBtn = e.target.closest('#crModalClose');
     if (closeBtn) {
       e.preventDefault();
-      const overlay = document.getElementById('crReviewOverlay');
-      if (overlay) {
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-      }
+      window.closeReviewModal();
       return;
     }
 
     const overlayEl = document.getElementById('crReviewOverlay');
     if (overlayEl && e.target === overlayEl) {
-      overlayEl.classList.remove('active');
-      document.body.style.overflow = '';
+      window.closeReviewModal();
     }
   });
 
