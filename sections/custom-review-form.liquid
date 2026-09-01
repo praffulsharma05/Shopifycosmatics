@@ -749,25 +749,35 @@ function closeReviewModal() {
     }
   });
 
-  /* ===== Star picker ===== */
+  /* ===== Star picker with Event Delegation ===== */
   let selectedRating = 0;
-  const stars = document.querySelectorAll('#crStarPicker .cr-pick-star');
-  stars.forEach(star => {
-    star.addEventListener('mouseenter', () => {
-      const val = parseInt(star.dataset.value);
-      stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= val));
-    });
-    star.addEventListener('click', () => {
-      selectedRating = parseInt(star.dataset.value);
-      stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
-    });
+
+  document.addEventListener('mouseover', function(e) {
+    const starBtn = e.target.closest('#crStarPicker .cr-pick-star');
+    if (starBtn) {
+      const val = parseInt(starBtn.dataset.value || 5);
+      const allStars = document.querySelectorAll('#crStarPicker .cr-pick-star');
+      allStars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= val));
+    }
   });
-  const picker = document.getElementById('crStarPicker');
-  if (picker) {
-    picker.addEventListener('mouseleave', () => {
-      stars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
-    });
-  }
+
+  document.addEventListener('mouseout', function(e) {
+    const picker = e.target.closest('#crStarPicker');
+    if (picker) {
+      const allStars = document.querySelectorAll('#crStarPicker .cr-pick-star');
+      allStars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    const starBtn = e.target.closest('#crStarPicker .cr-pick-star');
+    if (starBtn) {
+      e.preventDefault();
+      selectedRating = parseInt(starBtn.dataset.value || 5);
+      const allStars = document.querySelectorAll('#crStarPicker .cr-pick-star');
+      allStars.forEach(s => s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating));
+    }
+  });
 
   /* ===== Image upload ===== */
   const uploadArea = document.getElementById('crUploadArea');
