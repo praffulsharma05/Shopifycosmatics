@@ -510,6 +510,31 @@
   endif
 -%}
 
+<script>
+function openReviewModal() {
+  var overlay = document.getElementById('crReviewOverlay');
+  if (overlay) {
+    if (overlay.parentNode !== document.body) {
+      document.body.appendChild(overlay);
+    }
+    overlay.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 99999999 !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.65) !important; align-items: center !important; justify-content: center !important;';
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    var modal = overlay.querySelector('.cr-modal');
+    if (modal) modal.scrollTop = 0;
+  }
+}
+
+function closeReviewModal() {
+  var overlay = document.getElementById('crReviewOverlay');
+  if (overlay) {
+    overlay.style.cssText = 'display: none !important;';
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+</script>
+
 <div class="cr-section page-width">
   <h2 class="cr-heading">Customer Reviews</h2>
 
@@ -694,29 +719,6 @@
 
 
 <script>
-function openReviewModal() {
-  var overlay = document.getElementById('crReviewOverlay');
-  if (overlay) {
-    if (overlay.parentNode !== document.body) {
-      document.body.appendChild(overlay);
-    }
-    overlay.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 99999999 !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.65) !important; align-items: center !important; justify-content: center !important;';
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    var modal = overlay.querySelector('.cr-modal');
-    if (modal) modal.scrollTop = 0;
-  }
-}
-
-function closeReviewModal() {
-  var overlay = document.getElementById('crReviewOverlay');
-  if (overlay) {
-    overlay.style.cssText = 'display: none !important;';
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-}
-
 (function() {
   document.addEventListener('click', function(e) {
     var writeBtn = e.target.closest('#crWriteReviewBtn, .cr-btn--primary');
