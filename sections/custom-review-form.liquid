@@ -589,8 +589,8 @@
 <script>
 window.selectedRating = 0;
 function highlightStars(val) {
-  var stars = document.querySelectorAll('#crStarPicker .cr-pick-star');
-  stars.forEach(function(s, idx) {
+  const stars = document.querySelectorAll('#crStarPicker .cr-pick-star');
+  stars.forEach((s, idx) => {
     if ((idx + 1) <= val) {
       s.classList.add('active');
       s.style.setProperty('color', '#f5a623', 'important');
@@ -606,8 +606,65 @@ function selectStarRating(val) {
   highlightStars(val);
 }
 
+window.uploadedDataUrls = window.uploadedDataUrls || [];
+
+function handleSelectedPhotos(files) {
+  if (!files || files.length === 0) return;
+  const previewContainer = document.getElementById('crUploadPreview');
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const rawUrl = e.target.result;
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const maxDim = 250;
+          let w = img.width || maxDim;
+          let h = img.height || maxDim;
+          if (w > h) {
+            if (w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+          } else {
+            if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+
+          window.uploadedDataUrls.push(compressedDataUrl);
+
+          if (previewContainer) {
+            const item = document.createElement('div');
+            item.className = 'cr-upload-preview-item';
+            item.style.cssText = 'position:relative; display:inline-block; margin:5px; border-radius:8px; overflow:hidden; border:1px solid #ddd;';
+            item.innerHTML = '<img src="' + compressedDataUrl + '" style="width:70px; height:70px; object-fit:cover; display:block;"><button class="cr-remove-img" type="button" style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.65); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>';
+            
+            item.querySelector('.cr-remove-img').addEventListener('click', (ev) => {
+              ev.stopPropagation();
+              ev.preventDefault();
+              const idx = window.uploadedDataUrls.indexOf(compressedDataUrl);
+              if (idx > -1) {
+                window.uploadedDataUrls.splice(idx, 1);
+              }
+              item.remove();
+            });
+            previewContainer.appendChild(item);
+          }
+        } catch(canvasErr) {
+          console.log('Image compression note:', canvasErr);
+        }
+      };
+      img.src = rawUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function openReviewModal() {
-  var overlay = document.getElementById('crReviewOverlay');
+  const overlay = document.getElementById('crReviewOverlay');
   if (overlay) {
     if (overlay.parentNode !== document.body) {
       document.body.appendChild(overlay);
@@ -615,18 +672,18 @@ function openReviewModal() {
     overlay.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 99999999 !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0,0,0,0.65) !important; align-items: center !important; justify-content: center !important;';
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
-    var modal = overlay.querySelector('.cr-modal');
+    const modal = overlay.querySelector('.cr-modal');
     if (modal) modal.scrollTop = 0;
   }
 }
 
 function closeReviewModal() {
-  var overlay = document.getElementById('crReviewOverlay');
-  if (overlay) {
-    overlay.style.cssText = 'display: none !important;';
+  const overlays = document.querySelectorAll('#crReviewOverlay, .cr-overlay');
+  overlays.forEach(overlay => {
+    overlay.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
     overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  }
+  });
+  document.body.style.overflow = '';
 }
 </script>
 
@@ -797,11 +854,11 @@ function closeReviewModal() {
       <!-- Image Upload -->
       <div class="cr-form-group">
         <label>Upload Photos (optional)</label>
-        <div class="cr-upload-area" id="crUploadArea">
+        <label for="crFileInput" class="cr-upload-area" id="crUploadArea" style="cursor:pointer; display:block;">
           <div class="cr-upload-icon">📷</div>
           <div class="cr-upload-text"><span>Click to upload</span> or drag and drop<br>PNG, JPG up to 5MB</div>
-        </div>
-        <input type="file" id="crFileInput" accept="image/*" multiple style="display:none;">
+          <input type="file" id="crFileInput" accept="image/*" multiple style="display:none;" onchange="handleSelectedPhotos(this.files)">
+        </label>
         <div class="cr-upload-preview" id="crUploadPreview"></div>
       </div>
 
@@ -872,27 +929,61 @@ function closeReviewModal() {
   });
 
   /* ===== Image upload ===== */
-  const uploadArea = document.getElementById('crUploadArea');
-  const fileInput = document.getElementById('crFileInput');
-  const previewContainer = document.getElementById('crUploadPreview');
+  window.triggerPhotoUpload = function(e) {
+    var fileInput = document.getElementById('crFileInput');
+    if (fileInput) fileInput.click();
+  };
+
+  window.handleSelectedPhotos = function(files) {
+    if (files && files.length > 0) {
+      handleFiles(files);
+    }
+  };
+
   let uploadedFiles = [];
   let uploadedDataUrls = [];
 
-  if (uploadArea && fileInput) {
-    uploadArea.addEventListener('click', (e) => {
-      if (e.target !== fileInput) fileInput.click();
-    });
-    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'rgb(var(--color-foreground))'; });
-    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
-    uploadArea.addEventListener('drop', (e) => {
+  document.addEventListener('click', function(e) {
+    const area = e.target.closest('#crUploadArea');
+    if (area) {
+      const input = document.getElementById('crFileInput');
+      if (input && e.target !== input) input.click();
+    }
+  });
+
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'crFileInput' && e.target.files) {
+      handleFiles(e.target.files);
+    }
+  });
+
+  document.addEventListener('dragover', function(e) {
+    var area = e.target.closest('#crUploadArea');
+    if (area) {
       e.preventDefault();
-      uploadArea.style.borderColor = '';
-      if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files) handleFiles(fileInput.files);
-    });
-  }
+      e.stopPropagation();
+      area.style.borderColor = 'rgb(var(--color-foreground))';
+    }
+  });
+
+  document.addEventListener('dragleave', function(e) {
+    var area = e.target.closest('#crUploadArea');
+    if (area) {
+      area.style.borderColor = '';
+    }
+  });
+
+  document.addEventListener('drop', function(e) {
+    var area = e.target.closest('#crUploadArea');
+    if (area) {
+      e.preventDefault();
+      e.stopPropagation();
+      area.style.borderColor = '';
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFiles(e.dataTransfer.files);
+      }
+    }
+  });
 
   function compressImage(file, maxWidth, maxHeight, quality, callback) {
     const reader = new FileReader();
@@ -930,27 +1021,37 @@ function closeReviewModal() {
   }
 
   function handleFiles(files) {
+    const previewContainer = document.getElementById('crUploadPreview');
     Array.from(files).forEach(file => {
       if (!file.type.startsWith('image/')) return;
       if (uploadedFiles.length >= 5) return;
       uploadedFiles.push(file);
 
-      compressImage(file, 600, 600, 0.6, (compressedDataUrl) => {
-        uploadedDataUrls.push(compressedDataUrl);
-        const item = document.createElement('div');
-        item.className = 'cr-upload-preview-item';
-        item.innerHTML = '<img src="' + compressedDataUrl + '"><button class="cr-remove-img" type="button">&times;</button>';
-        item.querySelector('.cr-remove-img').addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          const idx = Array.from(previewContainer.children).indexOf(item);
-          if (idx > -1) {
-            uploadedFiles.splice(idx, 1);
-            uploadedDataUrls.splice(idx, 1);
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        uploadedDataUrls.push(dataUrl);
+
+        if (previewContainer) {
+          const item = document.createElement('div');
+          item.className = 'cr-upload-preview-item';
+          item.style.cssText = 'position:relative; display:inline-block; margin:5px; border-radius:8px; overflow:hidden; border:1px solid #ddd;';
+          item.innerHTML = '<img src="' + dataUrl + '" style="width:70px; height:70px; object-fit:cover; display:block;"><button class="cr-remove-img" type="button" style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.65); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>';
+          
+          item.querySelector('.cr-remove-img').addEventListener('click', function(ev) {
+            ev.stopPropagation();
+            ev.preventDefault();
+            const idx = Array.from(previewContainer.children).indexOf(item);
+            if (idx > -1) {
+              uploadedFiles.splice(idx, 1);
+              uploadedDataUrls.splice(idx, 1);
+            }
             item.remove();
-          }
-        });
-        previewContainer.appendChild(item);
-      });
+          });
+          previewContainer.appendChild(item);
+        }
+      };
+      reader.readAsDataURL(file);
     });
   }
 
@@ -989,50 +1090,61 @@ function closeReviewModal() {
     saveAllLocalReviews(reviews);
   }
 
-  // PUBLIC PRODUCT PAGE: Render APPROVED reviews from LocalStorage + Live Google Sheet!
+  // PUBLIC PRODUCT PAGE: Render APPROVED reviews instantly + background Google Sheet sync!
   function renderDynamicReviews() {
     const allRevs = getLocalReviews();
     let approvedRevs = allRevs.filter(r => r.status === 'APPROVED');
     
-    const googleSheetUrl = "https://script.google.com/macros/s/AKfycbzAIfA7Idka13nuFX1Yk_qJAuZ5fWMFFx5TwzP_8VzkH5EWsIcqVTFgHMFopKkrshYi/exec";
-    
-    // Fetch live Approved reviews from Google Sheet
-    fetch(googleSheetUrl)
-      .then(res => res.json())
-      .then(sheetData => {
-        if (Array.isArray(sheetData)) {
-          const currentHandle = "{{ product.handle }}".toLowerCase().trim();
-          const currentTitle = "{{ product.title | escape }}".toLowerCase().trim();
-          
-          sheetData.forEach(item => {
-            const h = String(item.product_handle || "").toLowerCase().trim();
-            if (h === currentHandle || h === currentTitle || h === "") {
-              // Avoid duplicates
-              if (!approvedRevs.some(existing => existing.review === item.review && existing.name === item.name)) {
-                let imgList = [];
-                if (Array.isArray(item.images)) imgList = item.images;
-                else if (item.image) imgList = [item.image];
-                else if (item.images && typeof item.images === 'string') imgList = [item.images];
+    // 1. Render immediately for zero navigation lag
+    buildReviewsListUI(approvedRevs);
 
-                approvedRevs.push({
-                  name: item.name,
-                  rating: parseInt(item.rating || 5),
-                  title: item.title,
-                  review: item.review,
-                  date: item.date,
-                  images: imgList,
-                  status: 'APPROVED'
-                });
+    const googleSheetUrl = "https://script.google.com/macros/s/AKfycbwiQwry2eWWwPMJph3g4Ils5zNUnbJs0NUjj6paZi7Doa8Ej3ZXoghWQwtFigrrsa6h/exec";
+    
+    // 2. Fetch live Google Sheet reviews asynchronously in background
+    setTimeout(() => {
+      fetch(googleSheetUrl)
+        .then(res => res.json())
+        .then(sheetData => {
+          if (Array.isArray(sheetData)) {
+            const currentHandle = "{{ product.handle }}".toLowerCase().trim();
+            const currentTitle = "{{ product.title | escape }}".toLowerCase().trim();
+            
+            sheetData.forEach(item => {
+              const h = String(item.product_handle || "").toLowerCase().trim();
+              const isMatch = !h || 
+                              h === currentHandle || 
+                              h === currentTitle || 
+                              currentHandle.startsWith(h) || 
+                              h.startsWith(currentHandle) ||
+                              currentHandle.includes(h) ||
+                              h.includes(currentHandle);
+
+              if (isMatch) {
+                if (!approvedRevs.some(existing => existing.review === item.review && existing.name === item.name)) {
+                  let imgList = [];
+                  if (Array.isArray(item.images)) imgList = item.images;
+                  else if (item.image) imgList = [item.image];
+                  else if (item.images && typeof item.images === 'string') {
+                    imgList = item.images.split(',').map(s => s.trim()).filter(Boolean);
+                  }
+
+                  approvedRevs.push({
+                    name: item.name,
+                    rating: parseInt(item.rating || 5),
+                    title: item.title,
+                    review: item.review,
+                    date: item.date,
+                    images: imgList,
+                    status: 'APPROVED'
+                  });
+                }
               }
-            }
-          });
-        }
-        buildReviewsListUI(approvedRevs);
-      })
-      .catch(err => {
-        console.log('Google sheet fetch note:', err);
-        buildReviewsListUI(approvedRevs);
-      });
+            });
+            buildReviewsListUI(approvedRevs);
+          }
+        })
+        .catch(err => console.log('Google sheet async fetch note:', err));
+    }, 50);
   }
 
   function buildReviewsListUI(approvedRevs) {
@@ -1064,15 +1176,15 @@ function closeReviewModal() {
         if (Array.isArray(rev.images)) {
           imagesArr = rev.images;
         } else if (typeof rev.images === 'string' && rev.images.length > 0) {
-          imagesArr = [rev.images];
+          imagesArr = rev.images.split(',').map(s => s.trim()).filter(Boolean);
         }
 
         let imagesHtml = '';
         if (imagesArr && imagesArr.length > 0) {
-          imagesHtml = '<div class="cr-review-photos">';
+          imagesHtml = '<div class="cr-review-photos" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">';
           imagesArr.forEach(imgUrl => {
-            if (imgUrl) {
-              imagesHtml += `<img src="${imgUrl}" alt="Review photo" class="cr-review-photo">`;
+            if (imgUrl && imgUrl.length > 5) {
+              imagesHtml += `<img src="${imgUrl}" alt="Review photo" class="cr-review-photo" style="width:65px; height:65px; object-fit:cover; border-radius:8px; border:1px solid #ddd; display:inline-block;">`;
             }
           });
           imagesHtml += '</div>';
@@ -1451,7 +1563,8 @@ function closeReviewModal() {
       const bodyVal = bodyInput ? bodyInput.value.trim() : '';
 
       try {
-        const safeImages = (uploadedDataUrls || []).slice(0, 2);
+        const currentRating = window.selectedRating || selectedRating || 5;
+        const safeImages = (window.uploadedDataUrls || uploadedDataUrls || []).slice(0, 2);
 
         const payload = {
           product_id: "{{ product.id }}",
@@ -1459,7 +1572,7 @@ function closeReviewModal() {
           product_handle: "{{ product.handle }}",
           name: nameVal,
           email: emailVal,
-          rating: selectedRating,
+          rating: currentRating,
           title: titleVal,
           review: bodyVal,
           images: safeImages,
@@ -1467,11 +1580,9 @@ function closeReviewModal() {
           submitted_at: new Date().toISOString()
         };
 
-        console.log('Sending review payload for admin approval:', payload);
-
         // Dispatch review submission directly to Google Sheet Web App
         try {
-          const googleSheetUrl = "https://script.google.com/macros/s/AKfycbzAIfA7Idka13nuFX1Yk_qJAuZ5fWMFFx5TwzP_8VzkH5EWsIcqVTFgHMFopKkrshYi/exec";
+          const googleSheetUrl = "https://script.google.com/macros/s/AKfycbwiQwry2eWWwPMJph3g4Ils5zNUnbJs0NUjj6paZi7Doa8Ej3ZXoghWQwtFigrrsa6h/exec";
           fetch(googleSheetUrl, {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
@@ -1487,7 +1598,7 @@ function closeReviewModal() {
 
         const newReview = {
           name: nameVal,
-          rating: selectedRating,
+          rating: currentRating,
           title: titleVal,
           review: bodyVal,
           images: safeImages,
