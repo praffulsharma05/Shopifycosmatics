@@ -202,14 +202,19 @@
     const customerId = window.customerId;
     if (customerId) {
       const val = wishlist.length > 0 ? wishlist.join(',') : 'none';
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 2000) : null;
       fetch(`${DB_BASE_URL}/UpdateValue/${DB_APP_KEY}/shopify-wishlist-${customerId}/${encodeURIComponent(val)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain'
         },
         body: '1',
-        keepalive: true
-      }).catch(err => console.error('Failed to sync wishlist to DB:', err));
+        keepalive: true,
+        signal: controller ? controller.signal : undefined
+      })
+      .then(() => { if (timeoutId) clearTimeout(timeoutId); })
+      .catch(err => { if (timeoutId) clearTimeout(timeoutId); });
     }
 
     // Dispatch a custom event to notify other scripts

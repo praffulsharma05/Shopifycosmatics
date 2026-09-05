@@ -1,7 +1,35 @@
 {% comment %}
-  Renders the "Offers For You" carousel card block.
+  Renders the "Offers For You" carousel card block dynamically from Shopify Admin Metafields & Theme Settings.
 {% endcomment %}
-<div class="offers-for-you-container">
+
+{%- assign has_offers = false -%}
+
+{%- comment -%} Check Product Level Single Metafield {%- endcomment -%}
+{%- if product.metafields.custom.coupon_code != blank or product.metafields.custom.discount_code != blank -%}
+  {%- assign has_offers = true -%}
+{%- endif -%}
+
+{%- comment -%} Check Product Level List Metafield {%- endcomment -%}
+{%- if product.metafields.custom.discounts.value != blank or product.metafields.custom.active_discounts.value != blank -%}
+  {%- assign has_offers = true -%}
+{%- endif -%}
+
+{%- comment -%} Check Shop Level Single Metafield {%- endcomment -%}
+{%- if shop.metafields.custom.coupon_code != blank or shop.metafields.custom.discount_code != blank -%}
+  {%- assign has_offers = true -%}
+{%- endif -%}
+
+{%- comment -%} Check Shop Level List Metafield {%- endcomment -%}
+{%- if shop.metafields.custom.discounts.value != blank or shop.metafields.custom.active_discounts.value != blank -%}
+  {%- assign has_offers = true -%}
+{%- endif -%}
+
+{%- comment -%} Check Block Settings {%- endcomment -%}
+{%- if block.settings.coupon_code != blank or block.settings.discount_code != blank -%}
+  {%- assign has_offers = true -%}
+{%- endif -%}
+
+<div class="offers-for-you-container" id="OffersForYouContainer" {% if has_offers == false %}style="display: none;"{% endif %}>
   <div class="offers-for-you__header">
     <div class="offers-for-you__title-group">
       <span class="offers-for-you__title">Offers For You</span>
@@ -14,12 +42,12 @@
   </div>
 
   <div class="offers-for-you__slider" id="OffersSlider">
-    {%- comment -%} Product Specific Discount via Metafield {%- endcomment -%}
+    {%- comment -%} 1. Product Single Metafield Discount {%- endcomment -%}
     {%- if product.metafields.custom.coupon_code != blank or product.metafields.custom.discount_code != blank -%}
-      {%- assign code_val = product.metafields.custom.coupon_code | default: product.metafields.custom.discount_code -%}
-      {%- assign title_val = product.metafields.custom.discount_title | default: product.metafields.custom.discount_description | default: 'Special product offer' -%}
-      {%- assign min_val = product.metafields.custom.minimum_purchase -%}
-      <div class="offers-for-you__card">
+      {%- assign p_code = product.metafields.custom.coupon_code | default: product.metafields.custom.discount_code -%}
+      {%- assign p_title = product.metafields.custom.discount_title | default: product.metafields.custom.discount_description | default: 'Special Offer' -%}
+      {%- assign p_min = product.metafields.custom.minimum_purchase -%}
+      <div class="offers-for-you__card" data-discount-code="{{ p_code }}">
         <div class="offers-for-you__icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
@@ -27,16 +55,44 @@
           </svg>
         </div>
         <div class="offers-for-you__info">
-          <div class="offers-for-you__code">{{ code_val }}</div>
-          <div class="offers-for-you__desc">{{ title_val }}{% if min_val != blank %} ({{ min_val }}){% endif %}</div>
+          <div class="offers-for-you__code">{{ p_code }}</div>
+          <div class="offers-for-you__desc">{{ p_title }}{% if p_min != blank %} • Minimum purchase of {{ p_min }}{% endif %}</div>
         </div>
-        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('{{ code_val }}', this)">Apply</button>
+        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('{{ p_code }}', this)">Apply</button>
       </div>
     {%- endif -%}
 
-    {%- comment -%} Real Discount 1: BONG123 (Niacinamide Sunscreen) {%- endcomment -%}
-    {%- if product.title contains 'Niacinamide' or product.handle contains 'niacinamide' -%}
-      <div class="offers-for-you__card">
+    {%- comment -%} 2. Product List Metafield Discounts {%- endcomment -%}
+    {%- assign p_discounts_list = product.metafields.custom.discounts.value | default: product.metafields.custom.active_discounts.value -%}
+    {%- if p_discounts_list != blank -%}
+      {%- for disc in p_discounts_list -%}
+        {%- assign d_code = disc.code | default: disc.coupon_code | default: disc.title -%}
+        {%- assign d_desc = disc.description | default: disc.title | default: disc.details -%}
+        {%- assign d_min = disc.minimum_purchase | default: disc.min_purchase -%}
+        {%- if d_code != blank -%}
+          <div class="offers-for-you__card" data-discount-code="{{ d_code }}">
+            <div class="offers-for-you__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              </svg>
+            </div>
+            <div class="offers-for-you__info">
+              <div class="offers-for-you__code">{{ d_code }}</div>
+              <div class="offers-for-you__desc">{{ d_desc }}{% if d_min != blank %} • Minimum purchase of {{ d_min }}{% endif %}</div>
+            </div>
+            <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('{{ d_code }}', this)">Apply</button>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+
+    {%- comment -%} 3. Shop Single Metafield Discount {%- endcomment -%}
+    {%- if shop.metafields.custom.coupon_code != blank or shop.metafields.custom.discount_code != blank -%}
+      {%- assign s_code = shop.metafields.custom.coupon_code | default: shop.metafields.custom.discount_code -%}
+      {%- assign s_title = shop.metafields.custom.discount_title | default: shop.metafields.custom.discount_description | default: 'Store Discount' -%}
+      {%- assign s_min = shop.metafields.custom.minimum_purchase -%}
+      <div class="offers-for-you__card" data-discount-code="{{ s_code }}">
         <div class="offers-for-you__icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
@@ -44,16 +100,19 @@
           </svg>
         </div>
         <div class="offers-for-you__info">
-          <div class="offers-for-you__code">BONG123</div>
-          <div class="offers-for-you__desc">90% off 5% Niacinamide Hydra Glow Gel Sunscreen (Min. purchase ₹800.00)</div>
+          <div class="offers-for-you__code">{{ s_code }}</div>
+          <div class="offers-for-you__desc">{{ s_title }}{% if s_min != blank %} • Minimum purchase of {{ s_min }}{% endif %}</div>
         </div>
-        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('BONG123', this)">Apply</button>
+        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('{{ s_code }}', this)">Apply</button>
       </div>
     {%- endif -%}
 
-    {%- comment -%} Real Discount 2: LIP20 (Lipstick) {%- endcomment -%}
-    {%- if product.title contains 'Lipstick' or product.handle contains 'lipstick' -%}
-      <div class="offers-for-you__card">
+    {%- comment -%} 4. Block Settings Discount {%- endcomment -%}
+    {%- if block.settings.coupon_code != blank or block.settings.discount_code != blank -%}
+      {%- assign b_code = block.settings.coupon_code | default: block.settings.discount_code -%}
+      {%- assign b_title = block.settings.discount_title | default: block.settings.discount_description | default: 'Special Offer' -%}
+      {%- assign b_min = block.settings.minimum_purchase -%}
+      <div class="offers-for-you__card" data-discount-code="{{ b_code }}">
         <div class="offers-for-you__icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
@@ -61,74 +120,12 @@
           </svg>
         </div>
         <div class="offers-for-you__info">
-          <div class="offers-for-you__code">LIP20</div>
-          <div class="offers-for-you__desc">20% off Velvet Kiss Matte Lipstick (Pink) (Min. purchase ₹1,000.00)</div>
+          <div class="offers-for-you__code">{{ b_code }}</div>
+          <div class="offers-for-you__desc">{{ b_title }}{% if b_min != blank %} • Minimum purchase of {{ b_min }}{% endif %}</div>
         </div>
-        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('LIP20', this)">Apply</button>
+        <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('{{ b_code }}', this)">Apply</button>
       </div>
     {%- endif -%}
-
-    {%- comment -%} Real Discount 3: SAVE500 (Skincare / Shampoo) {%- endcomment -%}
-    <div class="offers-for-you__card">
-      <div class="offers-for-you__icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-          <line x1="7" y1="7" x2="7.01" y2="7"></line>
-        </svg>
-      </div>
-      <div class="offers-for-you__info">
-        <div class="offers-for-you__code">SAVE500</div>
-        <div class="offers-for-you__desc">₹500.00 off Skincare • Minimum purchase of ₹2,000.00</div>
-      </div>
-      <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('SAVE500', this)">Apply</button>
-    </div>
-
-    {%- comment -%} Real Discount 4: WELCOME10 {%- endcomment -%}
-    <div class="offers-for-you__card">
-      <div class="offers-for-you__icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="19" y1="5" x2="5" y2="19"></line>
-          <circle cx="6.5" cy="6.5" r="2.5"></circle>
-          <circle cx="17.5" cy="17.5" r="2.5"></circle>
-        </svg>
-      </div>
-      <div class="offers-for-you__info">
-        <div class="offers-for-you__code">WELCOME10</div>
-        <div class="offers-for-you__desc">10% off entire order</div>
-      </div>
-      <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('WELCOME10', this)">Apply</button>
-    </div>
-
-    {%- comment -%} Real Discount 5: SAVE25 {%- endcomment -%}
-    <div class="offers-for-you__card">
-      <div class="offers-for-you__icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="19" y1="5" x2="5" y2="19"></line>
-          <circle cx="6.5" cy="6.5" r="2.5"></circle>
-          <circle cx="17.5" cy="17.5" r="2.5"></circle>
-        </svg>
-      </div>
-      <div class="offers-for-you__info">
-        <div class="offers-for-you__code">SAVE25</div>
-        <div class="offers-for-you__desc">25% off entire order</div>
-      </div>
-      <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('SAVE25', this)">Apply</button>
-    </div>
-
-    {%- comment -%} Real Discount 6: BOGO {%- endcomment -%}
-    <div class="offers-for-you__card">
-      <div class="offers-for-you__icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e2a39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-          <line x1="7" y1="7" x2="7.01" y2="7"></line>
-        </svg>
-      </div>
-      <div class="offers-for-you__info">
-        <div class="offers-for-you__code">BOGO</div>
-        <div class="offers-for-you__desc">Buy 1 item, get 1 item free</div>
-      </div>
-      <button type="button" class="offers-for-you__copy-btn" onclick="copyOfferCode('BOGO', this)">Apply</button>
-    </div>
   </div>
 </div>
 
@@ -277,6 +274,24 @@
     }
   }
 
+  function checkOffersVisibility() {
+    const container = document.getElementById('OffersForYouContainer');
+    const slider = document.getElementById('OffersSlider');
+    if (container && slider) {
+      const cards = slider.querySelectorAll('.offers-for-you__card');
+      if (cards.length > 0) {
+        container.style.display = '';
+      } else {
+        container.style.display = 'none';
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', checkOffersVisibility);
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    checkOffersVisibility();
+  }
+
   function showDiscountNotification(message, isError = false) {
     let toast = document.getElementById('discount-toast-notification');
     if (!toast) {
@@ -316,11 +331,6 @@
   }
 
   function getMinPurchaseFromDesc(code, descText) {
-    if (code === 'BONG123') return 800;
-    if (code === 'LIP20') return 1000;
-    if (code === 'SAVE500') return 2000;
-    if (code === 'WELCOME10' || code === 'SAVE25' || code === 'BOGO') return 0;
-
     if (descText) {
       const match = descText.match(/min(?:imum|\.)?\s*purchase\s*(?:of)?\s*[₹Rs.]*\s*([\d,]+(?:\.\d+)?)/i);
       if (match && match[1]) {
@@ -366,27 +376,21 @@
     let finalPrice = origPrice;
     let discountText = 'Discount Applied!';
 
-    if (code === 'BONG123' || (descText && descText.includes('90%'))) {
-      finalPrice = origPrice * 0.10;
-      discountText = '90% OFF Applied!';
-    } else if (code === 'LIP20' || (descText && descText.includes('20%'))) {
-      finalPrice = origPrice * 0.80;
-      discountText = '20% OFF Applied!';
-    } else if (code === 'SAVE25' || (descText && descText.includes('25%'))) {
-      finalPrice = origPrice * 0.75;
-      discountText = '25% OFF Applied!';
-    } else if (code === 'WELCOME10' || (descText && descText.includes('10%'))) {
-      finalPrice = origPrice * 0.90;
-      discountText = '10% OFF Applied!';
-    } else if (code === 'SAVE500' || (descText && descText.includes('500'))) {
-      finalPrice = Math.max(0, origPrice - 500);
-      discountText = '₹500 OFF Applied!';
-    } else if (descText && descText.includes('%')) {
-      const match = descText.match(/(\d+)%/);
+    if (descText && descText.includes('%')) {
+      const match = descText.match(/(\d+(?:\.\d+)?)%/);
       if (match) {
         const pct = parseFloat(match[1]);
         finalPrice = origPrice * ((100 - pct) / 100);
         discountText = `${pct}% OFF Applied!`;
+      }
+    } else if (descText) {
+      const match = descText.match(/[₹Rs.]*\s*([\d,]+(?:\.\d+)?)\s*(?:off|discount)/i);
+      if (match) {
+        const amount = parseFloat(match[1].replace(/,/g, ''));
+        if (!isNaN(amount) && amount > 0) {
+          finalPrice = Math.max(0, origPrice - amount);
+          discountText = `₹${amount} OFF Applied!`;
+        }
       }
     }
 
@@ -458,3 +462,5 @@
     }, 3000);
   }
 </script>
+
+

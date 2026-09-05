@@ -25,14 +25,16 @@
         </div>
         {% liquid
           assign item_rating = item.product.metafields.reviews.rating.value.rating | default: 0
-          assign item_rating_count = item.product.metafields.reviews.rating_count.value | default: item.product.metafields.reviews.rating_count | default: 12
+          assign item_rating_count = item.product.metafields.reviews.rating_count.value | default: item.product.metafields.reviews.rating_count | default: 0
         %}
-        <div class="cart-item__rating-pill" aria-label="{{ item_rating }} out of 5 stars">
-          <span class="cart-item__rating-star-icon">★</span>
-          <span class="cart-item__rating-val">{{ item_rating | round: 2 }}</span>
-          <span class="cart-item__rating-divider">•</span>
-          <span class="cart-item__rating-reviews">{{ item_rating_count }} reviews</span>
-        </div>
+        {% if item_rating_count > 0 or item_rating > 0 %}
+          <div class="cart-item__rating-pill" aria-label="{{ item_rating }} out of 5 stars">
+            <span class="cart-item__rating-star-icon">★</span>
+            <span class="cart-item__rating-val">{{ item_rating | round: 2 }}</span>
+            <span class="cart-item__rating-divider">•</span>
+            <span class="cart-item__rating-reviews">{{ item_rating_count }} reviews</span>
+          </div>
+        {% endif %}
         <dl>
           {%- unless item.product.has_only_default_variant -%}
             {%- for option in item.options_with_values -%}

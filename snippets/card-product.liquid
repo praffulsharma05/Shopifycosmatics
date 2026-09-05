@@ -222,18 +222,21 @@
             <div class="card-information" style="text-align: center; width: 100%; margin-top: auto; padding: 0; display: flex; flex-direction: column; align-items: center;">
               {% render 'price', product: card_product, price_class: '', show_compare_at_price: true %}
 
-              {% liquid
-                assign card_rating = card_product.metafields.reviews.rating.value.rating | default: card_product.metafields.reviews.rating.value | default: 0
-                assign card_rating_count = card_product.metafields.reviews.rating_count.value | default: card_product.metafields.reviews.rating_count | default: 0
-              %}
-              {% if card_rating_count > 0 or card_rating > 0 %}
-                <div class="cart-item__rating-pill" style="margin: 6px auto 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: #f3f3f5; padding: 3px 10px; border-radius: 12px; font-size: 1.1rem; color: #333;" aria-label="{{ card_rating }} out of 5 stars">
-                  <span class="cart-item__rating-star-icon" style="color: #ffb400;">★</span>
-                  <span class="cart-item__rating-val" style="font-weight: 700;">{{ card_rating | round: 2 }}</span>
-                  <span class="cart-item__rating-divider">•</span>
-                  <span class="cart-item__rating-reviews" style="opacity: 0.8;">{{ card_rating_count }} reviews</span>
-                </div>
-              {% endif %}
+              {%- if show_rating -%}
+                {% render 'judgeme_widgets', widget_type: 'judgeme_preview_badge', jm_style: '', concierge_install: true, product: card_product %}
+                {% liquid
+                  assign card_rating = card_product.metafields.reviews.rating.value.rating | default: card_product.metafields.reviews.rating.value | default: 0
+                  assign card_rating_count = card_product.metafields.reviews.rating_count.value | default: card_product.metafields.reviews.rating_count | default: 0
+                %}
+                {% if card_rating_count > 0 or card_rating > 0 %}
+                  <div class="cart-item__rating-pill" style="margin: 6px auto 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: #f3f3f5; padding: 3px 10px; border-radius: 12px; font-size: 1.1rem; color: #333;" aria-label="{{ card_rating }} out of 5 stars">
+                    <span class="cart-item__rating-star-icon" style="color: #ffb400;">★</span>
+                    <span class="cart-item__rating-val" style="font-weight: 700;">{{ card_rating | round: 2 }}</span>
+                    <span class="cart-item__rating-divider">•</span>
+                    <span class="cart-item__rating-reviews" style="opacity: 0.8;">{{ card_rating_count }} reviews</span>
+                  </div>
+                {% endif %}
+              {%- endif -%}
             </div>
           </div>
           <a

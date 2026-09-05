@@ -155,8 +155,14 @@
       <script type="application/ld+json">
         {{ product | structured_data }}
       </script>
-    </div>
   </product-component>
+
+  <!-- Judge.me Review Widget Container -->
+  <div class="page-width judgeme-review-widget-wrapper" style="margin-top: 4rem; margin-bottom: 4rem;">
+    <div id="judgeme_product_reviews" class="jdgm-widget jdgm-review-widget" data-id="{{ product.id }}">
+      {{ product.metafields.judgeme.widget }}
+    </div>
+  </div>
 
   <style>
     @media screen and (min-width: 1025px) {
@@ -432,31 +438,6 @@
       }
     }
 
-    /* Rating Block - Base styles (all breakpoints) */
-    .pdp-rating-block {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin: 8px 0 12px;
-      padding: 0;
-    }
-
-    .pdp-rating-block__stars {
-      display: flex;
-      gap: 1px;
-      font-size: 1.4rem;
-    }
-
-    .pdp-rating-block__score {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #111111;
-    }
-
-    .pdp-rating-block__count {
-      font-size: 1.3rem;
-      color: #666666;
-    }
   </style>
   {% render 'sticky-mobile-buy-bar', product: product, section: section %}
 </product-info>

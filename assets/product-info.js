@@ -70,8 +70,10 @@ if (!customElements.get('product-info')) {
         const shouldSwapProduct = this.dataset.url !== productUrl;
         const shouldFetchFullPage = this.dataset.updateUrl === 'true' && shouldSwapProduct;
 
+        const currentVariant = this.variantSelectors?.currentVariant;
+
         this.renderProductInfo({
-          requestUrl: this.buildRequestUrlWithParams(productUrl, selectedOptionValues, shouldFetchFullPage),
+          requestUrl: this.buildRequestUrlWithParams(productUrl, selectedOptionValues, shouldFetchFullPage, currentVariant),
           targetId: target.id,
           callback: shouldSwapProduct
             ? this.handleSwapProduct(productUrl, shouldFetchFullPage)
@@ -154,13 +156,18 @@ if (!customElements.get('product-info')) {
         return this.parseJsonScript(this.getVariantSelects(productInfoNode), '[data-selected-variant]');
       }
 
-      buildRequestUrlWithParams(url, optionValues, shouldFetchFullPage = false) {
+      buildRequestUrlWithParams(url, optionValues, shouldFetchFullPage = false, currentVariant = null) {
         const params = [];
 
         !shouldFetchFullPage && params.push(`section_id=${this.sectionId}`);
 
-        if (optionValues.length) {
-          params.push(`option_values=${optionValues.join(',')}`);
+        if (currentVariant && currentVariant.id) {
+          params.push(`variant=${currentVariant.id}`);
+        }
+
+        const validOptionValues = (optionValues || []).filter(Boolean);
+        if (validOptionValues.length) {
+          params.push(`option_values=${validOptionValues.join(',')}`);
         }
 
         return `${url}?${params.join('&')}`;
@@ -203,6 +210,7 @@ if (!customElements.get('product-info')) {
           };
 
           updateSourceFromDestination('price');
+          updateSourceFromDestination('NetVol');
           updateSourceFromDestination('Sku', ({ classList }) => classList.contains('hidden'));
           updateSourceFromDestination('Inventory', ({ innerText }) => innerText === '');
           updateSourceFromDestination('Volume');

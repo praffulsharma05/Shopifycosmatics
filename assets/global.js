@@ -1095,12 +1095,35 @@ class VariantSelects extends HTMLElement {
   getAllSelectedOptions() {
     const options = [];
     this.querySelectorAll('fieldset, .product-form__input--dropdown').forEach((group) => {
-      const checked = group.querySelector('input:checked') || group.querySelector('select option[selected]');
+      const checked = group.querySelector('input:checked') || group.querySelector('select option:selected') || group.querySelector('select option[selected]');
       if (checked) {
         options.push({ name: checked.dataset.optionName || '', value: checked.value });
       }
     });
     return options;
+  }
+
+  get currentVariant() {
+    if (!this._variantsData) {
+      const script = this.querySelector('script[type="application/json"][data-product-variants]');
+      if (script) {
+        try {
+          this._variantsData = JSON.parse(script.textContent);
+        } catch (e) {
+          this._variantsData = null;
+        }
+      }
+    }
+    if (!this._variantsData) return null;
+
+    const selectedValues = Array.from(this.querySelectorAll('fieldset, .product-form__input--dropdown')).map((group) => {
+      const checked = group.querySelector('input:checked') || group.querySelector('select option:checked') || group.querySelector('select option[selected]') || group.querySelector('select');
+      return checked ? checked.value : null;
+    }).filter(Boolean);
+
+    return this._variantsData.find((variant) => {
+      return variant.options.every((optionVal, index) => optionVal === selectedValues[index]);
+    });
   }
 
   dispatchProductSelectEvent() {

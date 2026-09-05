@@ -1,0 +1,38 @@
+{% comment %}
+  Judgeme Widgets snippet for Judge.me Product Reviews integration
+{% endcomment %}
+{%- liquid
+  assign jm_product = product | default: card_product
+-%}
+
+{%- if widget_type == 'judgeme_preview_badge' -%}
+  <div class="jdgm-widget jdgm-preview-badge" data-id="{{ jm_product.id }}" style="{{ jm_style }}">
+    {%- if jm_product.metafields.judgeme.badge -%}
+      {{ jm_product.metafields.judgeme.badge }}
+    {%- endif -%}
+  </div>
+{%- elsif widget_type == 'judgeme_review_widget' -%}
+  <div id="judgeme_product_reviews" class="jdgm-widget jdgm-review-widget" data-id="{{ jm_product.id }}" style="{{ jm_style }}">
+    {%- if jm_product.metafields.judgeme.widget -%}
+      {{ jm_product.metafields.judgeme.widget }}
+    {%- endif -%}
+  </div>
+{%- elsif widget_type == 'judgeme_verified_reviews_count_badge' -%}
+  <div class="jdgm-widget jdgm-verified-reviews-badge" data-id="{{ jm_product.id }}" style="{{ jm_style }}">
+    {%- if jm_product.metafields.judgeme.verified_badge -%}
+      {{ jm_product.metafields.judgeme.verified_badge }}
+    {%- endif -%}
+  </div>
+{%- elsif widget_type == 'judgeme_all_reviews_header' -%}
+  <div class="jdgm-widget jdgm-all-reviews-header">
+    {{ shop.metafields.judgeme.all_reviews_header }}
+  </div>
+{%- elsif widget_type == 'judgeme_all_reviews_badge' -%}
+  <div class="jdgm-widget jdgm-all-reviews-badge">
+    {{ shop.metafields.judgeme.all_reviews_badge }}
+  </div>
+{%- elsif widget_type == 'judgeme_floating_tab' -%}
+  <section class="jdgm-widget jdgm-revs-tab">
+    {{ shop.metafields.judgeme.floating_tab }}
+  </section>
+{%- endif -%}

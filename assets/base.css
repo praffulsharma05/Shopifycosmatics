@@ -4030,6 +4030,9 @@ details-disclosure>details {
 .collection-card-wrapper {
   content-visibility: auto;
   contain-intrinsic-size: 300px 450px;
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 img {
@@ -4040,6 +4043,33 @@ img {
 .card__media img {
   will-change: transform;
   transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 60fps Smooth GPU accelerated transitions & interactions */
+.card,
+.card-wrapper,
+.button,
+.header,
+.menu-drawer,
+.cart-drawer,
+.modal-dialog {
+  backface-visibility: hidden;
+}
+
+/* Mobile Touch Target & Interaction Optimization */
+@media screen and (max-width: 749px) {
+  .button,
+  .button-wishlist-icon,
+  .header__icon,
+  .cart-count-bubble,
+  .quantity__button {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* Tablet View Optimization (750px to 1024px resolution including 1024x928): 2 Cards Per Row */
@@ -4087,4 +4117,34 @@ body.gradient::-webkit-scrollbar {
 body {
   overflow-x: hidden;
   min-height: 100vh;
+}
+
+/* Kimirica Cosmetics Luxury Card & Button Polish */
+.product-card-wrapper {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border-radius: 16px !important;
+}
+
+.product-card-wrapper:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 16px 36px rgba(155, 4, 111, 0.12) !important;
+}
+
+.product-card-wrapper .card__media img {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.product-card-wrapper:hover .card__media img {
+  transform: scale(1.06) !important;
+}
+
+.card__add-to-cart-btn {
+  transition: background 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease !important;
+}
+
+.card__add-to-cart-btn:hover {
+  background: #9b046f !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(155, 4, 111, 0.35);
 }
